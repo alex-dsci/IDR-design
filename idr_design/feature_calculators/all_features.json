@@ -1,5 +1,5 @@
 {
-    "single_pass_composition_based": {
+    "single_pass": {
         "FCR": {
             "type": "average",
             "pattern": "[DERK]"
@@ -383,6 +383,9 @@
         "SR_repeats": {
             "type": "length",
             "pattern": "[SR]{2,}"
-            }
+            },
+        "complexity": {
+            "type": "complexity"
+        }
     }
 }
