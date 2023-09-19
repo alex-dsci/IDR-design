@@ -39,9 +39,9 @@ class Test:
         seq: str = self.fasta_lookup_sequences[fasta_id]
         counts: dict[str, int] = dict(map(lambda x: (x, seq.count(x)), "DEHCYKR"))
         old_val: float = old_isoelectric_point(counts, CONVERGE_TOLERANCE)
-        new_val: float = main.get_pI(counts) 
+        new_val: float = main.handle_pI(counts) 
         assert abs(new_val - old_val) < TEST_TOLERANCE 
-        new_val: float = main.get_pI(seq)
+        new_val: float = main.handle_pI(seq)
         assert abs(new_val - old_val) < TEST_TOLERANCE 
     def test_my_halley(self):
         old_method_clock: float = 0
