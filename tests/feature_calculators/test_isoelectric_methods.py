@@ -21,7 +21,6 @@ SCIPY_METHODS: dict[str, func[[dict[str, int]], float]] = {
     "halley": lambda counts: _scipy_suite_pI(counts, guess=True, method="halley")
 }
 
-@pytest.mark.slow
 class Test:
     feature_lookup_column: int = 88
     fasta_ids: list[str]
@@ -33,12 +32,14 @@ class Test:
         fasta_lookup_sequences = dict(zip(fasta_ids, sequences))
     # These test assumes the old bisect code produces the correct result.
     # To write an actual pI test requires a manual pI calculation, which I am not going to waste my time on.
-    @pytest.mark.slow_but_run_anyway
     @pytest.mark.parametrize(("fasta_id"), fasta_ids)
     def test_main(self, fasta_id: str):
-        counts: dict[str, int] = dict(map(lambda x: (x, self.fasta_lookup_sequences[fasta_id].count(x)), "DEHCYKR"))
-        old_val: float = main.get_pI(counts) 
-        new_val: float = old_isoelectric_point(counts, CONVERGE_TOLERANCE)
+        seq: str = self.fasta_lookup_sequences[fasta_id]
+        counts: dict[str, int] = dict(map(lambda x: (x, seq.count(x)), "DEHCYKR"))
+        old_val: float = old_isoelectric_point(counts, CONVERGE_TOLERANCE)
+        new_val: float = main.get_pI(counts) 
+        assert abs(new_val - old_val) < TEST_TOLERANCE 
+        new_val: float = main.get_pI(seq)
         assert abs(new_val - old_val) < TEST_TOLERANCE 
     def test_my_halley(self):
         old_method_clock: float = 0
@@ -55,7 +56,11 @@ class Test:
         print()
         print(f"Time halleys (mine): {halley_clock / len(self.sequences)}")
         print(f"Time bisect (old code): {old_method_clock / len(self.sequences)}")
-    def _test_generic_scipy(self, method_name: str):
+    @pytest.mark.slow
+    @pytest.mark.parametrize(("method_name"),[
+        "brentq", "bisect", "brenth", "ridder", "toms748", "newton", "secant", "halley"
+    ])
+    def test_scipy(self, method_name: str):
         old_method_clock: float = 0
         new_method_clock: float = 0
         new_method: func[[dict[str, int]], float] = SCIPY_METHODS[method_name]
@@ -70,20 +75,4 @@ class Test:
             assert abs(new_val - old_val) < TEST_TOLERANCE
         print()
         print(f"Time {method_name} (scipy): {new_method_clock / len(self.sequences)}")
-    def test_brentq(self):
-        self._test_generic_scipy("brentq")
-    def test_bisect(self):
-        self._test_generic_scipy("bisect")
-    def test_brenth(self):
-        self._test_generic_scipy("brenth")
-    def test_ridder(self):
-        self._test_generic_scipy("ridder")
-    def test_toms(self):
-        self._test_generic_scipy("toms748")    
-    def test_newton(self):
-        self._test_generic_scipy("newton")
-    def test_secant(self):
-        self._test_generic_scipy("secant")
-    def test_scipy_halley(self):
-        self._test_generic_scipy("halley")
     

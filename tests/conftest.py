@@ -9,14 +9,13 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "slow: mark test as slow to run")
-    config.addinivalue_line("markers", "slow_but_run_anyway: ignore the slow marker")
 
 def pytest_collection_modifyitems(config, items):
     if config.getoption("--run_slow"):
         return
-    skip_slow = pytest.mark.skip(reason="Test(s) is/are slow and shouldn't be run everytime. (Run with --run_slow)")
+    skip_slow = pytest.mark.skip(reason="Run with --run_slow")
     for item in items:
-        if "slow" in item.keywords and "slow_but_run_anyway" not in item.keywords:
+        if "slow" in item.keywords:
             item.add_marker(skip_slow)
 
 # # each test runs on cwd to its temp dir
