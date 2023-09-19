@@ -2,7 +2,7 @@
 # Code grabbed from: https://stackoverflow.com/questions/2281850/timeout-function-if-it-takes-too-long-to-finish
 
 import errno, os, signal, functools
-from typing import Iterable, Callable, Any
+from typing import Callable 
 
 DEFAULT_TIMEOUT_MESSAGE = os.strerror(errno.ETIME)
 def timeout(seconds: int, message: str = DEFAULT_TIMEOUT_MESSAGE):

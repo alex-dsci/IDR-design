@@ -180,28 +180,27 @@ class TestProcedures:
 @pytest.mark.slow
 class TestCBF:
     feature_calculator = CBF()
-    tasks: Iterator[tuple[str, str] | str]
-    feature_lookup_column: dict[str, int]
-    fasta_lookup_results: dict[str, list[float]]
-    def test_cbf_against_old_program(self):
-        self._setup_test()
-        for tup, feature in self.tasks:
-            fasta_id: str = tup[0]
-            sequence: str = tup[1]
-            column: int = self.feature_lookup_column[feature]
-            assert abs(self.feature_calculator[feature](sequence) - self.fasta_lookup_results[fasta_id][column]) <= FLOAT_COMPARISON_TOLERANCE
-    def _setup_test(self):
-        with open(f"{path_to_this_file}/yeast_proteome_clean.fasta", "r") as fastaf, open(f"{path_to_this_file}/230918 old code SPCB feats - yeast proteome.csv", "r") as resultf:
-            lines: list[str] = list(map(lambda line: line.strip("\n"),fastaf.readlines()))
-            inputs: zip[tuple[str, str]] = zip(lines[::2], lines[1::2])
-            features: list[str] = resultf.readline().strip("\n").split(",")[1:]
-            self.feature_lookup_column = dict(map(lambda tup: (tup[1], tup[0]), enumerate(features)))
-            self.tasks = product(inputs, features)
-            self.fasta_lookup_results = {}
-            for row in map(lambda line: line.strip("\n"),resultf.readlines()):
-                fasta_id: str = row.split(",")[0]
-                results: list[float] = list(map(float,row.split(",")[1:]))
-                self.fasta_lookup_results[fasta_id] = results
+    fasta_ids: list[str]
+    fasta_lookup_sequences: dict[str, str]
+    fasta_lookup_results: dict[str, dict[str, float]]
+    features: list[str]
+    with open(f"{path_to_this_file}/yeast_proteome_clean.fasta", "r") as fastaf, open(f"{path_to_this_file}/230918 old code SPCB feats - yeast proteome.csv", "r") as resultf:
+        lines: list[str] = list(map(lambda line: line.strip("\n"),fastaf.readlines()))
+        fasta_ids, sequences = lines[::2], lines[1::2]
+        fasta_lookup_sequences = dict(zip(fasta_ids, sequences))
+        features = resultf.readline().strip("\n").split(",")[1:]
+        fasta_lookup_results = {}
+        for row in map(lambda line: line.strip("\n"),resultf.readlines()):
+            fasta_id: str = row.split(",")[0]
+            results: list[float] = list(map(float,row.split(",")[1:]))
+            results_dict: dict[str, float] = dict(zip(features, results))
+            fasta_lookup_results[fasta_id] = results_dict
+    @pytest.mark.parametrize(("fasta_id"), fasta_ids)
+    def test_cbf_against_old_program(self, fasta_id: str):
+        seq: str = self.fasta_lookup_sequences[fasta_id]
+        for feature in self.features:
+            expected: float = self.fasta_lookup_results[fasta_id][feature]
+            assert abs(self.feature_calculator[feature](seq) - expected) <= FLOAT_COMPARISON_TOLERANCE
     
 
     

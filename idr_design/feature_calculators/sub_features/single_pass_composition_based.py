@@ -9,9 +9,9 @@ def _sum_scores_counts(scores: dict[str, float], pattern_counts: dict[str, int])
         sum += pattern_counts[pattern] * score
     return sum
 
-def _sum_scores_seq(residue_scores: dict[str, float], seq: str) -> float:
+def _sum_scores_seq(scores: dict[str, float], seq: str) -> float:
     sum: float = 0
-    for pattern, score in residue_scores.items():
+    for pattern, score in scores.items():
         sum += len(re.findall(pattern, seq)) * score
     return sum
 
