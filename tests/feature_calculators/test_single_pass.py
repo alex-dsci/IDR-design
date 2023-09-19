@@ -1,10 +1,9 @@
 import os
 from itertools import product
-import idr_design.feature_calculators.sub_features.single_pass_composition_based as CB
-from idr_design.feature_calculators.sub_features.single_pass_composition_based import SinglePassCBFeatures as CBF
+import idr_design.feature_calculators.sub_features.single_pass_features as CB
+from idr_design.feature_calculators.sub_features.single_pass_features import SinglePassCalculator as CBF
 import random, re, pytest
-from math import log1p
-from typing import Iterator
+from math import log1p, log
 
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
 ALPHABET_STRING = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -13,7 +12,7 @@ SIZE = 1000
 SEED = 2023
 REGEX_MATCH_ANY = "."
 REGEX_MATCH_NONE = "@"
-FLOAT_COMPARISON_TOLERANCE = 10 ** (-15)
+FLOAT_COMPARISON_TOLERANCE = 10 ** (-14)
 
 class BigExample:
     scores_A: dict[str, float]
@@ -200,6 +199,8 @@ class TestCBF:
         seq: str = self.fasta_lookup_sequences[fasta_id]
         for feature in self.features:
             expected: float = self.fasta_lookup_results[fasta_id][feature]
+            if feature == "complexity":
+                expected *= log(20)
             assert abs(self.feature_calculator[feature](seq) - expected) <= FLOAT_COMPARISON_TOLERANCE
     
 

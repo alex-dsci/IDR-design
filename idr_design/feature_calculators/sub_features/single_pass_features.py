@@ -1,7 +1,8 @@
 from collections.abc import Callable as func
 from typing import Any
 import json, re, os
-from math import log1p
+from math import log1p, lgamma
+from idr_design.constants import AA_STRING
 
 def _sum_scores_counts(scores: dict[str, float], pattern_counts: dict[str, int]) -> float:
     sum: float = 0
@@ -14,6 +15,14 @@ def _sum_scores_seq(scores: dict[str, float], seq: str) -> float:
     for pattern, score in scores.items():
         sum += len(re.findall(pattern, seq)) * score
     return sum
+
+def _complexity(counts: list[int]) -> float:
+    sum: int = 0
+    log_gamma_sum: float = 0
+    for count in counts:
+        sum += count
+        log_gamma_sum += lgamma(1 + count)
+    return (lgamma(1 + sum) - log_gamma_sum) / sum
 
 def handle_sum_or_count(pattern_or_scores: str | dict[str, float], seq_or_counts: str | dict[str, int]) -> float:
     if isinstance(seq_or_counts, str) and isinstance(pattern_or_scores, str):
@@ -59,13 +68,21 @@ def handle_length_calc(pattern: str, seq: str | dict[str, int], include_first: b
         sum += length_minus_first
     return sum
 
-class SinglePassCBFeatures(dict[str, func[[str | dict[str, int]], float]]):
+def handle_complexity(seq_or_counts: str | dict[str, int]) -> float:
+    counts: list[int]
+    if isinstance(seq_or_counts, str):
+        counts = [seq_or_counts.count(res) for res in AA_STRING]
+    else:
+        counts = list(seq_or_counts.values())
+    return _complexity(counts)
+
+class SinglePassCalculator(dict[str, func[[str | dict[str, int]], float]]):
 
     def __init__(self) -> None:
         super().__init__(self)
         path_to_this_file = os.path.dirname(os.path.realpath(__file__))
         with open(f"{path_to_this_file}/../all_features.json", "r") as f:
-            features: dict[str, dict[str, Any]] = json.load(f)["single_pass_composition_based"]
+            features: dict[str, dict[str, Any]] = json.load(f)["single_pass"]
         for feature, calculation in features.items():
             match calculation["type"]:
                 case "count":
@@ -78,6 +95,8 @@ class SinglePassCBFeatures(dict[str, func[[str | dict[str, int]], float]]):
                     self._init_log1p_ratio(feature, calculation)
                 case "length":
                     self._init_length(feature, calculation)
+                case "complexity":
+                    self._init_complexity()
                 case _:
                     raise KeyError("Offending arguments: calculation", calculation)
 
@@ -124,4 +143,6 @@ class SinglePassCBFeatures(dict[str, func[[str | dict[str, int]], float]]):
             raise KeyError("Offending arguments: calculation", calculation)
         self[feature] = lambda seq: handle_length_calc(pattern, seq)
 
+    def _init_complexity(self) -> None:
+        self["complexity"] = handle_complexity
     
