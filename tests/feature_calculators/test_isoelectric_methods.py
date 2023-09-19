@@ -1,5 +1,5 @@
 from idr_design.feature_calculators.sub_features.isoelectric._other_isoelectric_methods import _halley_pI, _scipy_suite_pI
-from idr_design.feature_calculators.sub_features.isoelectric._old_isoelectric import isoelectric_point as old_isoelectric_point
+from idr_design.feature_calculators.sub_features.isoelectric._old_isoelectric import isoelectric_point as old_isoelectric_point, charge_at_PH as old_charge
 import idr_design.feature_calculators.sub_features.isoelectric.main as main
 import os, pytest
 
@@ -21,6 +21,10 @@ SCIPY_METHODS: dict[str, func[[dict[str, int]], float]] = {
     "halley": lambda counts: _scipy_suite_pI(counts, guess=True, method="halley")
 }
 
+# These tests assume the old bisect code produces the correct pI.
+# This includes assuming the old charge calculation is correct.
+# To write an actual pI test requires a manual pI calculation, which I am not going to waste my time on.
+
 class Test:
     feature_lookup_column: int = 88
     fasta_ids: list[str]
@@ -30,8 +34,6 @@ class Test:
         lines: list[str] = list(map(lambda line: line.strip("\n"),fastaf.readlines()))
         fasta_ids, sequences = lines[::2], lines[1::2]
         fasta_lookup_sequences = dict(zip(fasta_ids, sequences))
-    # These test assumes the old bisect code produces the correct result.
-    # To write an actual pI test requires a manual pI calculation, which I am not going to waste my time on.
     @pytest.mark.parametrize(("fasta_id"), fasta_ids)
     def test_main(self, fasta_id: str):
         seq: str = self.fasta_lookup_sequences[fasta_id]
