@@ -4,6 +4,8 @@ import json, re, os
 from math import log1p, lgamma
 from idr_design.constants import AA_STRING
 
+path_to_this_file = os.path.dirname(os.path.realpath(__file__))
+
 def _sum_scores_counts(scores: dict[str, float], pattern_counts: dict[str, int]) -> float:
     sum: float = 0
     for pattern, score in scores.items():
@@ -80,7 +82,6 @@ class SinglePassCalculator(dict[str, func[[str | dict[str, int]], float]]):
 
     def __init__(self) -> None:
         super().__init__(self)
-        path_to_this_file = os.path.dirname(os.path.realpath(__file__))
         with open(f"{path_to_this_file}/../all_features.json", "r") as f:
             features: dict[str, dict[str, Any]] = json.load(f)["single_pass"]
         for feature, calculation in features.items():

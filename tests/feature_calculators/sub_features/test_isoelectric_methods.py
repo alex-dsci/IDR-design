@@ -30,7 +30,7 @@ class Test:
     fasta_ids: list[str]
     sequences: list[str]
     fasta_lookup_sequences: dict[str, str]
-    with open(f"{path_to_this_file}/yeast_proteome_clean.fasta", "r") as fastaf, open(f"{path_to_this_file}/230918 old code data - yeast proteome.csv") as resultf:
+    with open(f"{path_to_this_file}/../yeast_proteome_clean.fasta", "r") as fastaf, open(f"{path_to_this_file}/../230918 old code data - yeast proteome.csv") as resultf:
         lines: list[str] = list(map(lambda line: line.strip("\n"),fastaf.readlines()))
         fasta_ids, sequences = lines[::2], lines[1::2]
         fasta_lookup_sequences = dict(zip(fasta_ids, sequences))
@@ -43,6 +43,7 @@ class Test:
         assert abs(new_val - old_val) < TEST_TOLERANCE 
         new_val: float = main.handle_pI(seq)
         assert abs(new_val - old_val) < TEST_TOLERANCE 
+    @pytest.mark.slow
     def test_my_halley(self):
         old_method_clock: float = 0
         halley_clock: float = 0

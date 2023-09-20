@@ -176,14 +176,13 @@ class TestProcedures:
         assert CB.handle_length_calc(REGEX_MATCH_ANY, self.example.sequence, True) == len(self.example.sequence)
         assert CB.handle_length_calc(REGEX_MATCH_NONE, self.example.sequence) == 0
  
-@pytest.mark.slow
 class TestCBF:
     feature_calculator = CBF()
     fasta_ids: list[str]
     fasta_lookup_sequences: dict[str, str]
     fasta_lookup_results: dict[str, dict[str, float]]
     features: list[str]
-    with open(f"{path_to_this_file}/yeast_proteome_clean.fasta", "r") as fastaf, open(f"{path_to_this_file}/230918 old code SPCB feats - yeast proteome.csv", "r") as resultf:
+    with open(f"{path_to_this_file}/../yeast_proteome_clean.fasta", "r") as fastaf, open(f"{path_to_this_file}/../230918 old code SPCB feats - yeast proteome.csv", "r") as resultf:
         lines: list[str] = list(map(lambda line: line.strip("\n"),fastaf.readlines()))
         fasta_ids, sequences = lines[::2], lines[1::2]
         fasta_lookup_sequences = dict(zip(fasta_ids, sequences))
