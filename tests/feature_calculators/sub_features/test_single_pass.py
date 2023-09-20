@@ -198,6 +198,8 @@ class TestCBF:
         seq: str = self.fasta_lookup_sequences[fasta_id]
         for feature in self.features:
             expected: float = self.fasta_lookup_results[fasta_id][feature]
+            # old complexity is scaled for some reason - 
+            # it gets normalized later so I'm not changing my complexity calc.
             if feature == "complexity":
                 expected *= log(20)
             assert abs(self.feature_calculator[feature](seq) - expected) <= FLOAT_COMPARISON_TOLERANCE
