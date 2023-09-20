@@ -14,6 +14,10 @@ def _actual_neighbours(seq: str, blob: int) -> float:
             if i - last_position <= blob:
                 count += 1
             last_position = i
+    # What I find strange about this circularization process 
+    # (comparing the first and last procharge res as if they are arranged in a circle)
+    # is that it doesn't get done in the old kappa algorithm, which screws up testing unless we make
+    # this very arbitrary choice to do circularization here and not there...
     assert first_position is not None
     assert last_position is not None
     if first_position + len(seq) - last_position <= blob:
