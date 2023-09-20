@@ -8,27 +8,19 @@ AA_CHARGE = {
     "R":1
 }
 def _actual_neighbours(seq: str, blob: int) -> float:
-    first_position: int | None = None
-    first_charge: int | None = None
     last_position: int | None = None
     last_charge: int | None = None
     count: int = 0
     for i in range(len(seq)):
         if (seq[i] in AA_CHARGE.keys()):
             if last_position is None:
-                first_position = last_position = i
-                first_charge = last_charge = AA_CHARGE[seq[i]]
+                last_position = i
+                last_charge = AA_CHARGE[seq[i]]
                 continue
             if i - last_position <= blob and AA_CHARGE[seq[i]] == last_charge:
                 count += 1
             last_position = i
             last_charge = AA_CHARGE[seq[i]]
-    assert first_position is not None
-    assert first_charge is not None
-    assert last_position is not None
-    assert last_charge is not None
-    if first_position + len(seq) - last_position <= blob and first_charge == last_charge:
-        count += 1
     return count
 
 # Given one charged residue, the next blob residues are charged in an iid. manner.
