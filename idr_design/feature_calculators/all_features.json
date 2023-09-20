@@ -387,5 +387,11 @@
         "complexity": {
             "type": "complexity"
         }
-    }
+    },
+    "other": [
+        "kappa",
+        "omega",
+        "SCD",
+        "isoelectric_point"
+    ]
 }
