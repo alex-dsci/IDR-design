@@ -389,8 +389,8 @@
         }
     },
     "other": [
-        "kappa",
-        "omega",
+        "my_kappa",
+        "my_omega",
         "SCD",
         "isoelectric_point"
     ]
