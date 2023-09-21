@@ -3,9 +3,8 @@ from idr_design.feature_calculators.sub_features.omega import my_omega
 from idr_design.feature_calculators.sub_features.SCD import sequence_charge_decoration
 from idr_design.feature_calculators.sub_features.isoelectric.main import handle_pI
 from idr_design.feature_calculators.sub_features.single_pass_features import SinglePassCalculator
-from typing import Callable as func, Any, Iterator
-from itertools import product
-from numpy import var
+from typing import Callable as func, Any
+from pandas import Series, DataFrame
 import os, json
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
 
@@ -67,37 +66,20 @@ class DistanceCalculator:
     proteome_path: str
     def __init__(self, proteome_path: str, calculator: SequenceFeatureCalculator, skip_failures: bool = True):
         self.proteome_path = proteome_path
+        self.proteome_variance = []
         with open(proteome_path, "r") as file:
             lines: list[str] = list(map(lambda line: line.strip("\n"),file.readlines()))
         seqs: list[str] = lines[1::2]
         assert len(seqs) > 1
+        proteome_data: dict[str, dict[str, float | None]] | dict[str, dict[str, float]]
         if skip_failures:
-            proteome_data_dirty: list[dict[str, float | None]] = list(calculator.run_feats_mult_seqs_skip_fail(seqs).values())
-            for feat in calculator.supported_features:
-                sum_sqrd: float = 0
-                sum_feat: float = 0
-                n: int = 0
-                for protein_data in proteome_data_dirty:
-                    dirty_value: float | None = protein_data[feat]
-                    if isinstance(dirty_value, float):
-                        sum_feat += dirty_value
-                        sum_sqrd += dirty_value * dirty_value
-                        n += 1
-                assert n > 1 
-                variance: float = (sum_sqrd - sum_feat * sum_feat) / (n - 1)
-                assert variance != 0
-                self.proteome_variance.append(variance)
+            proteome_data = calculator.run_feats_mult_seqs_skip_fail(seqs)
         else:
-            proteome_data_clean: list[dict[str, float]] = list(calculator.run_feats_multiple_seqs(seqs).values())
-            for feat in calculator.supported_features:
-                sum_sqrd: float = 0
-                sum_feat: float = 0
-                for protein_data in proteome_data_clean:
-                    value: float = protein_data[feat]
-                    sum_feat += value
-                    sum_sqrd += value * value
-                variance: float = (sum_sqrd - sum_feat * sum_feat) / (len(seqs) - 1)
-                assert variance != 0 
-                self.proteome_variance.append(variance)
+            proteome_data = calculator.run_feats_multiple_seqs(seqs)
+        proteome_df: DataFrame = DataFrame(proteome_data.values())
+        var_list: Series = proteome_df.var()
+        for feat in calculator.supported_features:
+            self.proteome_variance.append(var_list[feat])
     def sqr_distance(self, vec_a: FeatureVector, vec_b: FeatureVector) -> float:
-        return sum(map(lambda a, b, var: (a - b) * (a - b) / var, vec_a, vec_b, self.proteome_variance))
+        dist: Series = Series(vec_a) - vec_b
+        return sum(dist * dist / self.proteome_variance)

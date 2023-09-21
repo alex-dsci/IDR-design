@@ -1,7 +1,7 @@
 import os
 from itertools import product
-import idr_design.feature_calculators.sub_features.single_pass_features as CB
-from idr_design.feature_calculators.sub_features.single_pass_features import SinglePassCalculator as CBF
+import idr_design.feature_calculators.sub_features.single_pass_features as SPF
+from idr_design.feature_calculators.sub_features.single_pass_features import SinglePassCalculator as SPFCalculator
 import random, re, pytest
 from math import log1p, log
 
@@ -104,80 +104,80 @@ class TestProcedures:
     with open(f"{path_to_this_file}/SPCB_BigExample.txt", "w") as f:
         print(example, file=f)
     def test_sum_scores_counts(self):
-        assert CB._sum_scores_counts(self.small_example["scores"], self.small_example["counts"]) == self.small_example["dot"]
-        assert CB._sum_scores_counts(self.example.scores_A, self.example.counts) == self.example.dot_product_A
-        assert CB._sum_scores_counts(self.example.scores_B, self.example.counts) == self.example.dot_product_B
+        assert SPF._sum_scores_counts(self.small_example["scores"], self.small_example["counts"]) == self.small_example["dot"]
+        assert SPF._sum_scores_counts(self.example.scores_A, self.example.counts) == self.example.dot_product_A
+        assert SPF._sum_scores_counts(self.example.scores_B, self.example.counts) == self.example.dot_product_B
     def test_sum_scores_seq(self):
-        assert CB._sum_scores_seq(self.small_example["scores"], self.small_example["sequence"]) == self.small_example["dot"]
-        assert CB._sum_scores_seq(self.example.scores_A, self.example.sequence) == self.example.dot_product_A
-        assert CB._sum_scores_seq(self.example.scores_B, self.example.sequence) == self.example.dot_product_B
+        assert SPF._sum_scores_seq(self.small_example["scores"], self.small_example["sequence"]) == self.small_example["dot"]
+        assert SPF._sum_scores_seq(self.example.scores_A, self.example.sequence) == self.example.dot_product_A
+        assert SPF._sum_scores_seq(self.example.scores_B, self.example.sequence) == self.example.dot_product_B
     def test_handle_sum_or_count(self):
-        assert CB.handle_sum_or_count("BC", self.small_example["sequence"]) == 4
-        assert CB.handle_sum_or_count("(BC){2}", self.small_example["sequence"]) == 2
-        assert CB.handle_sum_or_count("(BC){3}", self.small_example["sequence"]) == 1
-        assert CB.handle_sum_or_count("(BC){5}", self.small_example["sequence"]) == 0
-        assert CB.handle_sum_or_count("(BC)+", self.small_example["sequence"]) == 1
-        assert CB.handle_sum_or_count("BC", {"BC": len(re.findall("BC", self.small_example["sequence"]))}) == 4 
-        assert CB.handle_sum_or_count(self.example.scores_A, self.example.counts) == self.example.dot_product_A
-        assert CB.handle_sum_or_count(self.example.scores_A, self.example.sequence) == self.example.dot_product_A
-        assert CB.handle_sum_or_count(self.example.scores_B, self.example.counts) == self.example.dot_product_B
-        assert CB.handle_sum_or_count(self.example.scores_B, self.example.sequence) == self.example.dot_product_B
+        assert SPF.handle_sum_or_count("BC", self.small_example["sequence"]) == 4
+        assert SPF.handle_sum_or_count("(BC){2}", self.small_example["sequence"]) == 2
+        assert SPF.handle_sum_or_count("(BC){3}", self.small_example["sequence"]) == 1
+        assert SPF.handle_sum_or_count("(BC){5}", self.small_example["sequence"]) == 0
+        assert SPF.handle_sum_or_count("(BC)+", self.small_example["sequence"]) == 1
+        assert SPF.handle_sum_or_count("BC", {"BC": len(re.findall("BC", self.small_example["sequence"]))}) == 4 
+        assert SPF.handle_sum_or_count(self.example.scores_A, self.example.counts) == self.example.dot_product_A
+        assert SPF.handle_sum_or_count(self.example.scores_A, self.example.sequence) == self.example.dot_product_A
+        assert SPF.handle_sum_or_count(self.example.scores_B, self.example.counts) == self.example.dot_product_B
+        assert SPF.handle_sum_or_count(self.example.scores_B, self.example.sequence) == self.example.dot_product_B
         for char in ALPHABET_STRING:
-            assert CB.handle_sum_or_count(char, self.example.counts) == self.example.counts[char]
-            assert CB.handle_sum_or_count(char, self.example.sequence) == self.example.counts[char]
-        assert CB.handle_sum_or_count(self.example.regex_pattern, self.example.sequence) == self.example.regex_count
-        assert CB.handle_sum_or_count(self.example.regex_pattern, {self.example.regex_pattern: self.example.regex_count}) == self.example.regex_count
-        assert CB.handle_sum_or_count(REGEX_MATCH_NONE, self.example.sequence) == 0
-        assert CB.handle_sum_or_count(REGEX_MATCH_ANY, self.example.sequence) == len(self.example.sequence)
+            assert SPF.handle_sum_or_count(char, self.example.counts) == self.example.counts[char]
+            assert SPF.handle_sum_or_count(char, self.example.sequence) == self.example.counts[char]
+        assert SPF.handle_sum_or_count(self.example.regex_pattern, self.example.sequence) == self.example.regex_count
+        assert SPF.handle_sum_or_count(self.example.regex_pattern, {self.example.regex_pattern: self.example.regex_count}) == self.example.regex_count
+        assert SPF.handle_sum_or_count(REGEX_MATCH_NONE, self.example.sequence) == 0
+        assert SPF.handle_sum_or_count(REGEX_MATCH_ANY, self.example.sequence) == len(self.example.sequence)
     def test_handle_average(self):
-        assert CB.handle_average(self.example.scores_A, self.example.counts) == self.example.dot_product_A / len(self.example.sequence)
-        assert CB.handle_average(self.example.scores_A, self.example.sequence) == self.example.dot_product_A / len(self.example.sequence)
-        assert CB.handle_average(self.example.scores_B, self.example.counts) == self.example.dot_product_B / len(self.example.sequence)
-        assert CB.handle_average(self.example.scores_B, self.example.sequence) == self.example.dot_product_B / len(self.example.sequence)
+        assert SPF.handle_average(self.example.scores_A, self.example.counts) == self.example.dot_product_A / len(self.example.sequence)
+        assert SPF.handle_average(self.example.scores_A, self.example.sequence) == self.example.dot_product_A / len(self.example.sequence)
+        assert SPF.handle_average(self.example.scores_B, self.example.counts) == self.example.dot_product_B / len(self.example.sequence)
+        assert SPF.handle_average(self.example.scores_B, self.example.sequence) == self.example.dot_product_B / len(self.example.sequence)
         for char in ALPHABET_STRING:
-            assert CB.handle_average(char, self.example.counts) == self.example.counts[char] / len(self.example.sequence) 
-            assert CB.handle_average(char, self.example.sequence) == self.example.counts[char] / len(self.example.sequence)
-        assert CB.handle_average(self.example.regex_pattern, self.example.sequence) == self.example.regex_count / len(self.example.sequence)
-        assert CB.handle_average(REGEX_MATCH_NONE, self.example.sequence) == 0
-        assert CB.handle_average(REGEX_MATCH_ANY, self.example.sequence) == 1
+            assert SPF.handle_average(char, self.example.counts) == self.example.counts[char] / len(self.example.sequence) 
+            assert SPF.handle_average(char, self.example.sequence) == self.example.counts[char] / len(self.example.sequence)
+        assert SPF.handle_average(self.example.regex_pattern, self.example.sequence) == self.example.regex_count / len(self.example.sequence)
+        assert SPF.handle_average(REGEX_MATCH_NONE, self.example.sequence) == 0
+        assert SPF.handle_average(REGEX_MATCH_ANY, self.example.sequence) == 1
         with pytest.raises(ZeroDivisionError) as e:
-            CB.handle_average(REGEX_MATCH_ANY, "")
+            SPF.handle_average(REGEX_MATCH_ANY, "")
         assert e.value.args[0] == "Offending arguments: seq_or_counts"
     def test_handle_log1p_ratio(self):
-        assert CB.handle_log1p_ratio(self.example.abscore_A, self.example.abscore_B, self.example.counts) == log1p(self.example.dot_abs_A) - log1p(self.example.dot_abs_B)
-        assert CB.handle_log1p_ratio(self.example.abscore_A, self.example.abscore_B, self.example.sequence) == log1p(self.example.dot_abs_A) - log1p(self.example.dot_abs_B)
-        assert CB.handle_log1p_ratio(self.example.regex_pattern, self.example.abscore_A, self.example.sequence) == log1p(self.example.regex_count) - log1p(self.example.dot_abs_A)
+        assert SPF.handle_log1p_ratio(self.example.abscore_A, self.example.abscore_B, self.example.counts) == log1p(self.example.dot_abs_A) - log1p(self.example.dot_abs_B)
+        assert SPF.handle_log1p_ratio(self.example.abscore_A, self.example.abscore_B, self.example.sequence) == log1p(self.example.dot_abs_A) - log1p(self.example.dot_abs_B)
+        assert SPF.handle_log1p_ratio(self.example.regex_pattern, self.example.abscore_A, self.example.sequence) == log1p(self.example.regex_count) - log1p(self.example.dot_abs_A)
         for char_A, char_B in product(ALPHABET_STRING, ALPHABET_STRING):
-            assert CB.handle_log1p_ratio(char_A, char_B, self.example.sequence) == log1p(self.example.counts[char_A]) - log1p(self.example.counts[char_B])
-        assert CB.handle_log1p_ratio(self.example.abscore_A, self.example.regex_pattern, self.example.sequence) ==  log1p(self.example.dot_abs_A) - log1p(self.example.regex_count)
-        assert CB.handle_log1p_ratio(self.example.regex_pattern, self.example.abscore_A, self.example.sequence) ==  log1p(self.example.regex_count) - log1p(self.example.dot_abs_A)
-        assert CB.handle_log1p_ratio(self.example.abscore_A, self.example.abscore_A, self.example.sequence) == 0
-        assert CB.handle_log1p_ratio(self.example.regex_pattern, self.example.regex_pattern, self.example.sequence) == 0
+            assert SPF.handle_log1p_ratio(char_A, char_B, self.example.sequence) == log1p(self.example.counts[char_A]) - log1p(self.example.counts[char_B])
+        assert SPF.handle_log1p_ratio(self.example.abscore_A, self.example.regex_pattern, self.example.sequence) ==  log1p(self.example.dot_abs_A) - log1p(self.example.regex_count)
+        assert SPF.handle_log1p_ratio(self.example.regex_pattern, self.example.abscore_A, self.example.sequence) ==  log1p(self.example.regex_count) - log1p(self.example.dot_abs_A)
+        assert SPF.handle_log1p_ratio(self.example.abscore_A, self.example.abscore_A, self.example.sequence) == 0
+        assert SPF.handle_log1p_ratio(self.example.regex_pattern, self.example.regex_pattern, self.example.sequence) == 0
         with pytest.raises(ValueError) as e:
-            CB.handle_log1p_ratio(self.example.scores_A, self.example.abscore_B, self.example.counts)
+            SPF.handle_log1p_ratio(self.example.scores_A, self.example.abscore_B, self.example.counts)
         assert e.value.args[0] == "Negative scores inputted. Offending arguments: residue_scores_num, negative_scores"
         with pytest.raises(ValueError) as e:
-            CB.handle_log1p_ratio(self.example.abscore_A, self.example.scores_B, self.example.counts)
+            SPF.handle_log1p_ratio(self.example.abscore_A, self.example.scores_B, self.example.counts)
         assert e.value.args[0] == "Negative scores inputted. Offending arguments: residue_scores_denom, negative_scores"
     def test_handle_length_calc(self):
-        assert CB.handle_length_calc("BC+", self.small_example["sequence"]) == 9 - 4
-        assert CB.handle_length_calc("BC+", self.small_example["sequence"], True) == 9
-        assert CB.handle_length_calc("(BC)+", self.small_example["sequence"]) == 8 - 1
-        assert CB.handle_length_calc("(BC)+", self.small_example["sequence"], True) == 8
-        assert CB.handle_length_calc("(BC){3}", self.small_example["sequence"]) == 6 - 1
-        assert CB.handle_length_calc("(BC){3}", self.small_example["sequence"], True) == 6
-        assert CB.handle_length_calc("(BC){2}", self.small_example["sequence"]) == 8 - 2
-        assert CB.handle_length_calc("(BC){2}", self.small_example["sequence"], True) == 8
-        assert CB.handle_length_calc(self.example.regex_pattern, self.example.sequence) == self.example.regex_length
+        assert SPF.handle_length_calc("BC+", self.small_example["sequence"]) == 9 - 4
+        assert SPF.handle_length_calc("BC+", self.small_example["sequence"], True) == 9
+        assert SPF.handle_length_calc("(BC)+", self.small_example["sequence"]) == 8 - 1
+        assert SPF.handle_length_calc("(BC)+", self.small_example["sequence"], True) == 8
+        assert SPF.handle_length_calc("(BC){3}", self.small_example["sequence"]) == 6 - 1
+        assert SPF.handle_length_calc("(BC){3}", self.small_example["sequence"], True) == 6
+        assert SPF.handle_length_calc("(BC){2}", self.small_example["sequence"]) == 8 - 2
+        assert SPF.handle_length_calc("(BC){2}", self.small_example["sequence"], True) == 8
+        assert SPF.handle_length_calc(self.example.regex_pattern, self.example.sequence) == self.example.regex_length
         with pytest.raises(ValueError) as e:
-            CB.handle_length_calc(self.example.regex_pattern, self.example.counts) 
+            SPF.handle_length_calc(self.example.regex_pattern, self.example.counts) 
         assert e.value.args[0] == "Length calculations take strings. Offending arguments: seq"
-        assert CB.handle_length_calc(REGEX_MATCH_ANY, self.example.sequence) == 0
-        assert CB.handle_length_calc(REGEX_MATCH_ANY, self.example.sequence, True) == len(self.example.sequence)
-        assert CB.handle_length_calc(REGEX_MATCH_NONE, self.example.sequence) == 0
+        assert SPF.handle_length_calc(REGEX_MATCH_ANY, self.example.sequence) == 0
+        assert SPF.handle_length_calc(REGEX_MATCH_ANY, self.example.sequence, True) == len(self.example.sequence)
+        assert SPF.handle_length_calc(REGEX_MATCH_NONE, self.example.sequence) == 0
  
-class TestCBF:
-    feature_calculator = CBF()
+class TestCalculator:
+    feature_calculator = SPFCalculator()
     fasta_ids: list[str]
     fasta_lookup_sequences: dict[str, str]
     fasta_lookup_results: dict[str, dict[str, float]]

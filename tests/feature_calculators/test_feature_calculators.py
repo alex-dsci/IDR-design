@@ -38,13 +38,13 @@ class TestFeatCalc:
             match fasta_id, feature:
                 # test scd - old code made a mistake that shows up here
                 case ">P32874", "SCD":
-                    continue 
+                    assert self.feature_calculator[feature](seq) == 2.401181835670923 
                 # test kappa - throws error
                 case ">P89113", "my_kappa":
                     with pytest.raises(ValueError):
                         self.feature_calculator[feature](seq)
                 case _:
-                    assert abs(self.feature_calculator[feature](seq) - expected) <= FLOAT_COMPARISON_TOLERANCE
+                    assert abs(self.feature_calculator[feature](seq) - expected) < FLOAT_COMPARISON_TOLERANCE
     @pytest.mark.parametrize(("fasta_id"), nice_fasta_ids)
     def test_run_feats(self, fasta_id: str):
         # old code did it in units of log base 20, which gets normalized out later
@@ -53,11 +53,9 @@ class TestFeatCalc:
         calc: list[float] = self.feature_calculator.run_feats(seq)
         for i, feature in enumerate(self.feature_calculator.supported_features):
             expected: float = self.fasta_lookup_results[fasta_id][feature]
-            assert abs(calc[i] - expected) <= FLOAT_COMPARISON_TOLERANCE
+            assert abs(calc[i] - expected) < FLOAT_COMPARISON_TOLERANCE
     @pytest.mark.parametrize(("fasta_id"), fasta_ids)
     def test_run_feats_skip_failures(self, fasta_id: str):
-        # old code did it in units of log base 20, which gets normalized out later
-        self.fasta_lookup_results[fasta_id]["complexity"] *= log(20)
         seq: str = self.fasta_lookup_sequences[fasta_id]
         calc: list[float | None] = self.feature_calculator.run_feats_skip_failures(seq)
         for i, feature in enumerate(self.feature_calculator.supported_features):
@@ -73,11 +71,11 @@ class TestFeatCalc:
                     assert result is None
                 case _:
                     assert result is not None
-                    assert abs(result - expected) <= FLOAT_COMPARISON_TOLERANCE
+                    assert abs(result - expected) < FLOAT_COMPARISON_TOLERANCE
     def test_run_feats_multiple_seqs(self):
         massive_result: dict[str, dict[str, float | None]] = \
             self.feature_calculator.run_feats_mult_seqs_skip_fail(self.sequences)
-        for fasta_id, feature in product(self.fasta_ids, self.features):
+        for fasta_id, feature in product(self.fasta_ids, self.feature_calculator.supported_features):
             seq: str = self.fasta_lookup_sequences[fasta_id]
             expected: float = self.fasta_lookup_results[fasta_id][feature]
             result: float | None = massive_result[seq][feature]
@@ -91,7 +89,7 @@ class TestFeatCalc:
                     assert result is None
                 case _:
                     assert result is not None
-                    assert abs(result - expected) <= FLOAT_COMPARISON_TOLERANCE
-    
-    
+                    assert abs(result - expected) < FLOAT_COMPARISON_TOLERANCE
+
+
         
