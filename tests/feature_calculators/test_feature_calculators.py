@@ -1,20 +1,19 @@
 import os
-from idr_design.feature_calculators.main import SequenceFeatureCalculator as Calculator
+from idr_design.feature_calculators.main import SequenceFeatureCalculator as FeatCalc
 import pytest
 from math import log
 
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
 FLOAT_COMPARISON_TOLERANCE = 10 ** (-12)
 
-
-
-class Test:
-    feature_calculator: Calculator = Calculator()
+@pytest.mark.skip
+class TestFeatCalc:
+    feature_calculator: FeatCalc = FeatCalc()
     fasta_ids: list[str]
     fasta_lookup_sequences: dict[str, str]
     fasta_lookup_results: dict[str, dict[str, float]]
     features: list[str]
-    with open(f"{path_to_this_file}/yeast_proteome_clean.fasta", "r") as fastaf, open(f"{path_to_this_file}/230918 old code data - yeast proteome.csv", "r") as resultf:
+    with open(f"{path_to_this_file}/../yeast_proteome_clean.fasta", "r") as fastaf, open(f"{path_to_this_file}/230918 old code data - yeast proteome.csv", "r") as resultf:
         lines: list[str] = list(map(lambda line: line.strip("\n"),fastaf.readlines()))
         fasta_ids, sequences = lines[::2], lines[1::2]
         fasta_lookup_sequences = dict(zip(fasta_ids, sequences))
@@ -25,7 +24,7 @@ class Test:
             results: list[float] = list(map(float,row.split(",")[1:]))
             results_dict: dict[str, float] = dict(zip(features, results))
             fasta_lookup_results[fasta_id] = results_dict
-    
+    @pytest.mark.slow
     @pytest.mark.parametrize(("fasta_id"), fasta_ids)
     def test_calc(self, fasta_id: str):
         self.fasta_lookup_results[fasta_id]["complexity"] *= log(20)

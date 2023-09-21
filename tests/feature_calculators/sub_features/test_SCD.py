@@ -10,7 +10,7 @@ class Test:
     fasta_ids: list[str]
     fasta_lookup_sequences: dict[str, str]
     fasta_lookup_results: dict[str, float]
-    with open(f"{path_to_this_file}/../yeast_proteome_clean.fasta", "r") as fastaf, open(f"{path_to_this_file}/../230918 old code data - yeast proteome.csv", "r") as resultf:
+    with open(f"{path_to_this_file}/../../yeast_proteome_clean.fasta", "r") as fastaf, open(f"{path_to_this_file}/../230918 old code data - yeast proteome.csv", "r") as resultf:
         lines: list[str] = list(map(lambda line: line.strip("\n"),fastaf.readlines()))
         fasta_ids, sequences = lines[::2], lines[1::2]
         fasta_lookup_sequences = dict(zip(fasta_ids, sequences))
