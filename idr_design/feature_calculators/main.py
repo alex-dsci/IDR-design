@@ -4,10 +4,10 @@ from idr_design.feature_calculators.sub_features.SCD import sequence_charge_deco
 from idr_design.feature_calculators.sub_features.isoelectric.main import handle_pI
 from idr_design.feature_calculators.sub_features.single_pass_features import SinglePassCalculator
 from typing import Callable as func, Any
-from pandas import Series, DataFrame
-import os, json
+from pandas import Series, DataFrame, read_csv
+import os, json, re
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
-DEFAULT_PROTEOME_PATH: str = f"{path_to_this_file}/yeast_proteome_clean.fasta"
+DEFAULT_PROTEOME_PATH: str = f"{path_to_this_file}/input_data/yeast_proteome_variance.csv"
 
 # Use this class like:
 # seq = ...
@@ -68,6 +68,13 @@ class DistanceCalculator:
     def __init__(self, calculator: SequenceFeatureCalculator, proteome_path: str = DEFAULT_PROTEOME_PATH, skip_failures: bool = True):
         self.proteome_path = proteome_path
         self.proteome_variance = []
+        if re.search(r".fasta$", proteome_path):
+            self._init_with_fasta(calculator, proteome_path, skip_failures)
+        elif re.search(r".csv$", proteome_path):
+            self._init_with_csv(calculator, proteome_path)
+        else:
+            raise ValueError("Not a valid path!", proteome_path)
+    def _init_with_fasta(self, calculator: SequenceFeatureCalculator, proteome_path: str, skip_failures: bool):
         with open(proteome_path, "r") as file:
             lines: list[str] = list(map(lambda line: line.strip("\n"),file.readlines()))
         seqs: list[str] = lines[1::2]
@@ -81,6 +88,10 @@ class DistanceCalculator:
         var_list: Series = proteome_df.var()
         for feat in calculator.supported_features:
             self.proteome_variance.append(var_list[feat])
+    def _init_with_csv(self, calculator: SequenceFeatureCalculator, proteome_variance_file: str):
+        loaded_var_data: Series = read_csv(proteome_variance_file, index_col=0)['0']
+        for feat in calculator.supported_features:
+            self.proteome_variance.append(loaded_var_data[feat])
     def sqr_distance(self, vec_a: FeatureVector, vec_b: FeatureVector) -> float:
         diff: Series = Series(vec_a) - vec_b
         return sum(diff * diff / self.proteome_variance)

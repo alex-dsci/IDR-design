@@ -8,10 +8,9 @@ from itertools import product
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
 FLOAT_COMPARISON_TOLERANCE = 10 ** (-11)
 
-@pytest.mark.slow
 class TestDistCalc:
     feature_calculator: FeatCalc = FeatCalc()
-    distance_calculator = DistCalc(f"{path_to_this_file}/../yeast_proteome_clean.fasta", feature_calculator)
+    distance_calculator = DistCalc(feature_calculator)
     fasta_ids: list[str]
     fasta_lookup_sequences: dict[str, str]
     fasta_lookup_results: DataFrame
@@ -23,15 +22,15 @@ class TestDistCalc:
     # I hate this too but there are duplicates and pytest doesn't like user defined __init__'s 
     # All this misc. bs is just removing the duplicates
     fasta_lookup_results = read_csv(f"{path_to_this_file}/230918 old code data - yeast proteome.csv", index_col=0)
-    # Prevent code from compiling forever
-    skip_after: int = 30
     @pytest.mark.parametrize(("i","feature"), enumerate(feature_calculator.supported_features))
     def test_proteome_variance(self, i: int, feature: str):
-        var_list: Series = self._get_var_list()
+        var_list: Series = self._get_no_duplicate_results().var()
         assert abs(self.distance_calculator.proteome_variance[i] - var_list[feature]) < FLOAT_COMPARISON_TOLERANCE
+    # Prevent code from compiling forever
+    skip_after: int = 25
     @pytest.mark.parametrize(("fasta_a", "fasta_b"), product(fasta_ids[:skip_after], fasta_ids[-skip_after:]))
     def test_distance(self, fasta_a: str, fasta_b: str):
-        var_list: Series = self._get_var_list() 
+        var_list: Series = self._get_no_duplicate_results().var()
         try:
             feats_a = self.feature_calculator.run_feats(self.fasta_lookup_sequences[fasta_a])
             feats_b = self.feature_calculator.run_feats(self.fasta_lookup_sequences[fasta_b])
@@ -39,9 +38,22 @@ class TestDistCalc:
             return
         diff_sqr: list[float] = list(map(lambda x, y: (x - y) * (x - y), feats_a, feats_b))
         assert abs(self.distance_calculator.sqr_distance(feats_a, feats_b) - sum(map(lambda tup: diff_sqr[tup[0]] / var_list[tup[1]],enumerate(self.feature_calculator.supported_features)))) < FLOAT_COMPARISON_TOLERANCE
-    def _get_var_list(self) -> Series:
+    @pytest.mark.slow
+    def test_many_distance(self):
+        huge_calc: dict[str, dict[str, float | None]] = self.feature_calculator\
+            .run_feats_mult_seqs_skip_fail(self.sequences)
+        cleaned_calc: DataFrame = DataFrame(huge_calc.values(), index=list(huge_calc.keys())).dropna()
+        no_dup_results: DataFrame = self._get_no_duplicate_results().dropna()
+        diffs: DataFrame = no_dup_results - cleaned_calc
+        assert diffs.applymap(lambda x: abs(x) < FLOAT_COMPARISON_TOLERANCE).all(axis=None)
+    @pytest.mark.slow
+    def test_default_initialization(self):
+        manually_calculated_dist_calc: DistCalc = DistCalc(self.feature_calculator, f"{path_to_this_file}/../yeast_proteome_clean.fasta")
+        diff: Series = Series(self.distance_calculator.proteome_variance) - manually_calculated_dist_calc.proteome_variance
+        assert (abs(diff) < FLOAT_COMPARISON_TOLERANCE).all()
+    def _get_no_duplicate_results(self) -> DataFrame:
         processed_results: DataFrame = self.fasta_lookup_results
-        # sorting out some peculiar behaviour from the old cod
+        # sorting out some peculiar behaviour from the old code
         processed_results["SCD"][">P32874"] = 2.401181835670923
         processed_results["my_kappa"][">P89113"] = None
         # removing duplicates!!! variance calculation was suffering
@@ -52,6 +64,6 @@ class TestDistCalc:
             .set_index("index")
         # Strangely this doesn't work if you put it above with the others
         processed_results["complexity"] *= log(20)
-        return processed_results.var()
+        return processed_results
 
         
