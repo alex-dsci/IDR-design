@@ -7,6 +7,7 @@ from typing import Callable as func, Any
 from pandas import Series, DataFrame
 import os, json
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
+DEFAULT_PROTEOME_PATH: str = f"{path_to_this_file}/yeast_proteome_clean.fasta"
 
 # Use this class like:
 # seq = ...
@@ -46,25 +47,25 @@ class SequenceFeatureCalculator(dict[str, FeatCalcHandler]):
             except:
                 result.append(None)
         return result
-    def run_feats_multiple_seqs(self, seqs: list[str]) -> dict[str, dict[str, float]]:
+    def run_feats_multiple_seqs(self, seqs: list[str] | Series) -> dict[str, dict[str, float]]:
         grid_feats: dict[str, dict[str, float]] = dict(map(lambda x: (x, {}), seqs))
         for seq in seqs:
             values: list[float] = self.run_feats(seq)
             grid_feats[seq].update(zip(self.supported_features, values))
         return grid_feats
-    def run_feats_mult_seqs_skip_fail(self, seqs: list[str]) -> dict[str, dict[str, float | None]]:
+    def run_feats_mult_seqs_skip_fail(self, seqs: list[str] | Series) -> dict[str, dict[str, float | None]]:
         grid_feats: dict[str, dict[str, float | None]] = dict(map(lambda x: (x, {}), seqs))
         for seq in seqs:
             values: list[float | None] = self.run_feats_skip_failures(seq)
             grid_feats[seq].update(zip(self.supported_features, values))
         return grid_feats
     
-FeatureVector = list[float]
+FeatureVector = list[float] | Series
 
 class DistanceCalculator:
     proteome_variance: list[float]
     proteome_path: str
-    def __init__(self, proteome_path: str, calculator: SequenceFeatureCalculator, skip_failures: bool = True):
+    def __init__(self, calculator: SequenceFeatureCalculator, proteome_path: str = DEFAULT_PROTEOME_PATH, skip_failures: bool = True):
         self.proteome_path = proteome_path
         self.proteome_variance = []
         with open(proteome_path, "r") as file:
@@ -81,5 +82,7 @@ class DistanceCalculator:
         for feat in calculator.supported_features:
             self.proteome_variance.append(var_list[feat])
     def sqr_distance(self, vec_a: FeatureVector, vec_b: FeatureVector) -> float:
-        dist: Series = Series(vec_a) - vec_b
-        return sum(dist * dist / self.proteome_variance)
+        diff: Series = Series(vec_a) - vec_b
+        return sum(diff * diff / self.proteome_variance)
+    def sqr_distance_many_to_one(self, df: DataFrame, target: FeatureVector) -> Series:
+        return df.apply(lambda feat_vec: self.sqr_distance(feat_vec, target), axis=1)
