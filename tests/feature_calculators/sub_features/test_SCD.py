@@ -1,6 +1,6 @@
 import os
 from idr_design.feature_calculators.sub_features.SCD import sequence_charge_decoration
-import pytest, re
+import pytest
 
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
 TEST_TOLERANCE = 10 ** (-14)

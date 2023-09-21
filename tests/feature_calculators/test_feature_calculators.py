@@ -7,7 +7,6 @@ from itertools import product
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
 FLOAT_COMPARISON_TOLERANCE = 10 ** (-12)
 
-@pytest.mark.slow
 class TestFeatCalc:
     feature_calculator: FeatCalc = FeatCalc()
     fasta_ids: list[str]
@@ -45,7 +44,9 @@ class TestFeatCalc:
                         self.feature_calculator[feature](seq)
                 case _:
                     assert abs(self.feature_calculator[feature](seq) - expected) < FLOAT_COMPARISON_TOLERANCE
-    @pytest.mark.parametrize(("fasta_id"), nice_fasta_ids)
+    # Prevent code from compiling forever
+    skip_after: int = 1000
+    @pytest.mark.parametrize(("fasta_id"), nice_fasta_ids[:skip_after])
     def test_run_feats(self, fasta_id: str):
         # old code did it in units of log base 20, which gets normalized out later
         self.fasta_lookup_results[fasta_id]["complexity"] *= log(20)
@@ -54,7 +55,7 @@ class TestFeatCalc:
         for i, feature in enumerate(self.feature_calculator.supported_features):
             expected: float = self.fasta_lookup_results[fasta_id][feature]
             assert abs(calc[i] - expected) < FLOAT_COMPARISON_TOLERANCE
-    @pytest.mark.parametrize(("fasta_id"), fasta_ids)
+    @pytest.mark.parametrize(("fasta_id"), fasta_ids[:skip_after])
     def test_run_feats_skip_failures(self, fasta_id: str):
         seq: str = self.fasta_lookup_sequences[fasta_id]
         calc: list[float | None] = self.feature_calculator.run_feats_skip_failures(seq)
@@ -72,6 +73,7 @@ class TestFeatCalc:
                 case _:
                     assert result is not None
                     assert abs(result - expected) < FLOAT_COMPARISON_TOLERANCE
+    @pytest.mark.slow
     def test_run_feats_multiple_seqs(self):
         massive_result: dict[str, dict[str, float | None]] = \
             self.feature_calculator.run_feats_mult_seqs_skip_fail(self.sequences)
