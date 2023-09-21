@@ -6,7 +6,6 @@ from math import log
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
 FLOAT_COMPARISON_TOLERANCE = 10 ** (-12)
 
-@pytest.mark.skip
 class TestFeatCalc:
     feature_calculator: FeatCalc = FeatCalc()
     fasta_ids: list[str]
