@@ -38,33 +38,28 @@ class SequenceFeatureCalculator(dict[str, FeatCalcHandler]):
         self.supported_features = list(self.keys())
     def run_feats(self, seq: str) -> list[float]:
         return list(map(lambda feat: self[feat](seq), self.supported_features))
-    def run_feats_skip_failures(self, seq: str) -> list[float | Exception]:
-        result: list[float | Exception] = []
+    def run_feats_skip_failures(self, seq: str) -> list[float | None]:
+        result: list[float | None] = []
         for feat in self.supported_features:
             try:
-                result.append(self[feat](seq))
-            except Exception as err:
-                result.append(err)
+                value: float = self[feat](seq)
+                result.append(value)
+            except:
+                result.append(None)
         return result
     def run_feats_multiple_seqs(self, seqs: list[str]) -> dict[str, dict[str, float]]:
-        tasks: Iterator[tuple[str, str]] = product(seqs, self.supported_features)
         grid_feats: dict[str, dict[str, float]] = dict(map(lambda x: (x, {}), seqs))
-        for seq, feat in tasks:
-            value: float = self[feat](seq)
-            grid_feats[seq].update({feat: value})
+        for seq in seqs:
+            values: list[float] = self.run_feats(seq)
+            grid_feats[seq].update(zip(self.supported_features, values))
         return grid_feats
     def run_feats_mult_seqs_skip_fail(self, seqs: list[str]) -> dict[str, dict[str, float | None]]:
-        tasks: Iterator[tuple[str, str]] = product(seqs, self.supported_features)
         grid_feats: dict[str, dict[str, float | None]] = dict(map(lambda x: (x, {}), seqs))
-        for seq, feat in tasks:
-            value: float | None
-            try:
-                value = self[feat](seq)
-            except:
-                value = None
-            grid_feats[seq].update({feat: value})
+        for seq in seqs:
+            values: list[float | None] = self.run_feats_skip_failures(seq)
+            grid_feats[seq].update(zip(self.supported_features, values))
         return grid_feats
-
+    
 FeatureVector = list[float]
 
 class DistanceCalculator:
