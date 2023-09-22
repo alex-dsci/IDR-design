@@ -59,19 +59,18 @@ class SequenceFeatureCalculator(dict[str, FeatCalcHandler]):
             values: list[float | None] = self.run_feats_skip_failures(seq)
             grid_feats[seq].update(zip(self.supported_features, values))
         return grid_feats
-    
-FeatureVector = list[float] | Series
 
 class DistanceCalculator:
-    proteome_variance: list[float]
+    proteome_variance: Series
+    supported_features: list[str]
     proteome_path: str
     def __init__(self, calculator: SequenceFeatureCalculator, proteome_path: str = DEFAULT_PROTEOME_PATH, skip_failures: bool = True):
         self.proteome_path = proteome_path
-        self.proteome_variance = []
+        self.supported_features = calculator.supported_features
         if re.search(r".fasta$", proteome_path):
             self._init_with_fasta(calculator, proteome_path, skip_failures)
         elif re.search(r".csv$", proteome_path):
-            self._init_with_csv(calculator, proteome_path)
+            self._init_with_csv(proteome_path)
         else:
             raise ValueError("Not a valid path!", proteome_path)
     def _init_with_fasta(self, calculator: SequenceFeatureCalculator, proteome_path: str, skip_failures: bool):
@@ -86,14 +85,24 @@ class DistanceCalculator:
             proteome_data = calculator.run_feats_multiple_seqs(seqs)
         proteome_df: DataFrame = DataFrame(proteome_data.values())
         var_list: Series = proteome_df.var()
-        for feat in calculator.supported_features:
-            self.proteome_variance.append(var_list[feat])
-    def _init_with_csv(self, calculator: SequenceFeatureCalculator, proteome_variance_file: str):
-        loaded_var_data: Series = read_csv(proteome_variance_file, index_col=0)['0']
-        for feat in calculator.supported_features:
-            self.proteome_variance.append(loaded_var_data[feat])
-    def sqr_distance(self, vec_a: FeatureVector, vec_b: FeatureVector) -> float:
-        diff: Series = Series(vec_a) - vec_b
+        temp_prot_var: list[float] = []
+        for feat in self.supported_features:
+            temp_prot_var.append(var_list[feat])
+        self.proteome_variance = Series(temp_prot_var, index=self.supported_features)
+    def _init_with_csv(self, proteome_variance_file: str):
+        self.proteome_variance = read_csv(proteome_variance_file, index_col=0)['0']
+    def sqr_distance(self, vec_a: list[float] | Series, vec_b: list[float] | Series) -> float:
+        ser_a: Series
+        ser_b: Series
+        if isinstance(vec_a, Series):
+            ser_a = vec_a
+        else:
+            ser_a = Series(vec_a, index=self.supported_features) 
+        if isinstance(vec_b, Series):
+            ser_b = vec_b
+        else:
+            ser_b = Series(vec_b, index=self.supported_features) 
+        diff: Series = ser_a - ser_b
         return sum(diff * diff / self.proteome_variance)
-    def sqr_distance_many_to_one(self, df: DataFrame, target: FeatureVector) -> Series:
+    def sqr_distance_many_to_one(self, df: DataFrame, target: Series) -> Series:
         return df.apply(lambda feat_vec: self.sqr_distance(feat_vec, target), axis=1)

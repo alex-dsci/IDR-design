@@ -3,6 +3,7 @@ from idr_design.feature_calculators.main import SequenceFeatureCalculator as Fea
 import pytest
 from math import log
 from itertools import product
+from pandas import Series, DataFrame
 
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
 FLOAT_COMPARISON_TOLERANCE = 10 ** (-12)
@@ -27,6 +28,7 @@ class TestFeatCalc:
     nice_fasta_ids: list[str] = fasta_ids.copy()
     nice_fasta_ids.remove(">P32874")
     nice_fasta_ids.remove(">P89113")
+    @pytest.mark.slow
     @pytest.mark.parametrize(("fasta_id"), fasta_ids)
     def test_individual_calcs(self, fasta_id: str):
         # old code did it in units of log base 20, which gets normalized out later
@@ -75,8 +77,7 @@ class TestFeatCalc:
                     assert abs(result - expected) < FLOAT_COMPARISON_TOLERANCE
     @pytest.mark.slow
     def test_run_feats_multiple_seqs(self):
-        massive_result: dict[str, dict[str, float | None]] = \
-            self.feature_calculator.run_feats_mult_seqs_skip_fail(self.sequences)
+        massive_result: dict[str, dict[str, float | None]] = self.feature_calculator.run_feats_mult_seqs_skip_fail(self.sequences)
         for fasta_id, feature in product(self.fasta_ids, self.feature_calculator.supported_features):
             seq: str = self.fasta_lookup_sequences[fasta_id]
             expected: float = self.fasta_lookup_results[fasta_id][feature]

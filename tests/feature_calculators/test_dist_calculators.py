@@ -27,7 +27,7 @@ class TestDistCalc:
         var_list: Series = self._get_no_duplicate_results().var()
         assert abs(self.distance_calculator.proteome_variance[i] - var_list[feature]) < FLOAT_COMPARISON_TOLERANCE
     # Prevent code from compiling forever
-    skip_after: int = 25
+    skip_after: int = 5
     @pytest.mark.parametrize(("fasta_a", "fasta_b"), product(fasta_ids[:skip_after], fasta_ids[-skip_after:]))
     def test_distance(self, fasta_a: str, fasta_b: str):
         var_list: Series = self._get_no_duplicate_results().var()
@@ -39,13 +39,18 @@ class TestDistCalc:
         diff_sqr: list[float] = list(map(lambda x, y: (x - y) * (x - y), feats_a, feats_b))
         assert abs(self.distance_calculator.sqr_distance(feats_a, feats_b) - sum(map(lambda tup: diff_sqr[tup[0]] / var_list[tup[1]],enumerate(self.feature_calculator.supported_features)))) < FLOAT_COMPARISON_TOLERANCE
     @pytest.mark.slow
-    def test_many_distance(self):
-        huge_calc: dict[str, dict[str, float | None]] = self.feature_calculator\
-            .run_feats_mult_seqs_skip_fail(self.sequences)
-        cleaned_calc: DataFrame = DataFrame(huge_calc.values(), index=list(huge_calc.keys())).dropna()
-        no_dup_results: DataFrame = self._get_no_duplicate_results().dropna()
-        diffs: DataFrame = no_dup_results - cleaned_calc
-        assert diffs.applymap(lambda x: abs(x) < FLOAT_COMPARISON_TOLERANCE).all(axis=None)
+    @pytest.mark.parametrize(("fasta_id"), fasta_ids[:skip_after])
+    def test_many_distance(self, fasta_id: str):
+        target: Series = Series(self.feature_calculator.run_feats(self.fasta_lookup_sequences[fasta_id]),
+                                index=self.feature_calculator.supported_features)
+        no_dups_data: DataFrame = self._get_no_duplicate_results().dropna()
+        calc: Series = self.distance_calculator.sqr_distance_many_to_one(
+            no_dups_data,
+            Series(target, index=self.feature_calculator.supported_features)
+        )
+        for calc_dist, feats in zip(calc, no_dups_data.iloc):
+            exp_dist: float = self.distance_calculator.sqr_distance(feats, target)
+            assert calc_dist == exp_dist
     @pytest.mark.slow
     def test_default_initialization(self):
         manually_calculated_dist_calc: DistCalc = DistCalc(self.feature_calculator, f"{path_to_this_file}/../yeast_proteome_clean.fasta")
