@@ -5,7 +5,7 @@ from itertools import product
 import pytest
 from time import time
 
-SEED = 2023
+SEED = 2022
 SMALL_TEST = "KRTAE"
 A0A090N8E9_M7YB41_IDR_1 = "PDEAPAWALKADDATGAKDPGQSSSGSAKKADAP"
 UNI_8GLV = "MREIVHIQGGQCGNQIGAKFWEVVSDEHGIDPTGTYHGDSDLQLERINVYFNEATGGRYVPRAILMDLEPGTMDSVRSGPYGQIFRPDNFVFGQTGAGNNWAKGHYTEGAELIDSVLDVVRKEAESCDCLQGFQVCHSLGGGTGSGMGTLLISKIREEYPDRMMLTFSVVPSPKVSDTVVEPYNATLSVHQLVENADECMVLDNEALYDICFRTLKLTTPTFGDLNHLISAVMSGITCCLRFPGQLNADLRKLAVNLIPFPRLHFFMVGFTPLTSRGSQQYRALTVPELTQQMWDAKNMMCAADPRHGRYLTASALFRGRMSTKEVDEQMLNVQNKNSSYFVEWIPNNVKSSVCDIPPKGLKMSATFIGNSTAIQEMFKRVSEQFTAMFRRKAFLHWYTGEGMDEMEFTEAESNMNDLVSEYQQYQDASAEEEGEFEGEEEEA"
@@ -15,22 +15,24 @@ class Test:
     sfc = brute_force.feature_calculator
     dc = brute_force.distance_calculator
     sample_multipt: RandMultiChange = RandMultiChange(SEED)
-    @pytest.mark.parametrize(("model", "seq"), product(
-            # [brute_force, sample_multipt],
-            [sample_multipt],
-            [SMALL_TEST, A0A090N8E9_M7YB41_IDR_1, P00004_P00004_IDR_1]
-            # [SMALL_TEST, A0A090N8E9_M7YB41_IDR_1, P00004_P00004_IDR_1, UNI_8GLV]
+    @pytest.mark.parametrize(("seq", "model"), product(
+            # [SMALL_TEST, A0A090N8E9_M7YB41_IDR_1],
+            # [UNI_8GLV],
+            [SMALL_TEST, A0A090N8E9_M7YB41_IDR_1, P00004_P00004_IDR_1, UNI_8GLV],
+
+            [sample_multipt, brute_force]
+            # [sample_multipt]
         ))
-    def test(self, model: SequenceDesigner, seq: str):
+    def test(self, seq: str, model: SequenceDesigner):
         t = time()
         print()
+        print(model)
         result = model.design_similar(1, seq)[0]
         result_feats = self.sfc.run_feats(result)
         target_feats = self.sfc.run_feats(seq)
         dist = self.dc.sqr_distance(result_feats, target_feats)
-        print(seq)
-        print(result)
-        print(dist, time() - t)
         print()
+        print(seq)
+        print(result, dist, time() - t)
     
         

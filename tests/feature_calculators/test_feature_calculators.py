@@ -3,7 +3,6 @@ from idr_design.feature_calculators.main import SequenceFeatureCalculator as Fea
 import pytest
 from math import log
 from itertools import product
-from pandas import Series, DataFrame
 
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
 FLOAT_COMPARISON_TOLERANCE = 10 ** (-12)

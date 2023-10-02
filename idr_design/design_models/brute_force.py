@@ -40,6 +40,6 @@ class BruteForce(SequenceDesigner):
             assert next_place >= 0
             next_seq = clean_next_seqs.iloc[next_place]
             step_size = self.distance_calculator.sqr_distance(clean_next_feats.iloc[next_place], clean_next_feats.iloc[0])
-            print(next_seq, next_dists.min(), time() - t, end="\r") 
+            self._print_progress(next_seq, next_dists.min(), time() - t) 
         return next_seq
     
