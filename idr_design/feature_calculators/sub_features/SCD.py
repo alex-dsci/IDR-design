@@ -1,13 +1,12 @@
 from math import sqrt
 
-CHARGES: dict[str, int] = {
-     "D": -1,
-     "E": -1,
-     "R": 1,
-     "K": 1
-}
-
 def sequence_charge_decoration(seq: str) -> float:
+    CHARGES: dict[str, int] = {
+        "D": -1,
+        "E": -1,
+        "R": 1,
+        "K": 1
+    }
     scd: float = 0
     charged_res_positions: list[int] = []
     charges: list[int] = []
