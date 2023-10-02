@@ -9,7 +9,7 @@ from time import time
 DEFAULT_PRECISION = 10 ** (-4)
 MIN_POP_SIZE = 4 
 SAMPLE_SIZE = 4
-class RandMPM(SequenceDesigner):
+class RandMultiChange(SequenceDesigner):
     def apply_move(self, query: str, move: list[tuple[int, str]]) -> str:
         result: str = query
         for i, res in move:

@@ -1,5 +1,5 @@
 from idr_design.design_models.brute_force import BruteForce
-from idr_design.design_models.rand_mpm import RandMPM
+from idr_design.design_models.rand_mch import RandMultiChange
 from idr_design.design_models.seq_designer import SequenceDesigner
 from itertools import product
 import pytest
@@ -14,7 +14,7 @@ class Test:
     brute_force: BruteForce = BruteForce(SEED)
     sfc = brute_force.feature_calculator
     dc = brute_force.distance_calculator
-    sample_multipt: RandMPM = RandMPM(SEED)
+    sample_multipt: RandMultiChange = RandMultiChange(SEED)
     @pytest.mark.parametrize(("model", "seq"), product(
             # [brute_force, sample_multipt],
             [sample_multipt],
