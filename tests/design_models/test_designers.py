@@ -25,9 +25,9 @@ class Test:
         t = time()
         print()
         result = model.design_similar(1, seq)[0]
-        feats = self.sfc.run_feats(result)
-        featsb = self.sfc.run_feats(seq)
-        dist = self.dc.sqr_distance(feats, featsb)
+        result_feats = self.sfc.run_feats(result)
+        target_feats = self.sfc.run_feats(seq)
+        dist = self.dc.sqr_distance(result_feats, target_feats)
         print(seq)
         print(result)
         print(dist, time() - t)
