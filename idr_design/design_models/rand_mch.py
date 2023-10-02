@@ -12,7 +12,7 @@ REST_SAMPLE_SIZE = 6
 class RandMultiChange(SequenceDesigner):
     good_sample_size: int
     rest_sample_size: int
-    def __init__(self, seed: int | None = None, good_size: int = GOOD_SAMPLE_SIZE, rest_size: int = REST_SAMPLE_SIZE) -> None:
+    def __init__(self, seed: str | None = None, good_size: int = GOOD_SAMPLE_SIZE, rest_size: int = REST_SAMPLE_SIZE) -> None:
         super().__init__(seed)
         self.good_sample_size = good_size
         self.rest_sample_size = rest_size
@@ -26,7 +26,7 @@ class RandMultiChange(SequenceDesigner):
             yield self.apply_move(query, move)
     def search_similar(self, query: str, target: str, precision: float = DEFAULT_PRECISION) -> str:
         if self.seed is not None:
-            random.seed(str(self.seed) + target)
+            random.seed(self.seed + target)
         def seq_generator(query: str, moves: list[tuple[int, str]]) -> Iterator[tuple[str, int, str] | None]:
             for i, res in moves:
                 if query[i] == res:
@@ -41,11 +41,9 @@ class RandMultiChange(SequenceDesigner):
         one_point_moves: list[tuple[int, str]] = list(product(range(len(next_seq)), AA_STRING))
         random.shuffle(one_point_moves)
         next_one_pt_muts: Iterator[tuple[str, int, str] | None] = seq_generator(next_seq, one_point_moves)
-        move_data: dict[int, tuple[str, float]] = {}
-        def stop_sampling(move_data: dict[int, tuple[str, float]]) -> bool:
-            good_sample: list[int] = [key for key, data in move_data.items() if data[1] > precision]
-            return len(good_sample) > self.good_sample_size
-        while not stop_sampling(move_data):
+        good_moves: dict[int, tuple[str, float]] = {}
+        negative_delta_moves: dict[int, tuple[str, float]] = {}
+        while len(good_moves) < self.good_sample_size:
             guess_or_none = next(next_one_pt_muts)
             if guess_or_none is None:
                 break
@@ -55,16 +53,24 @@ class RandMultiChange(SequenceDesigner):
                 continue
             guess_dist: float = self.distance_calculator.sqr_distance(guess_feats, target_feats)
             if guess_dist < next_dist:
-                if i in move_data.keys():
-                    if guess_dist > move_data[i][1]:
+                step_size: float = self.distance_calculator.sqr_distance(guess_feats, next_feats)
+                if step_size > precision:
+                    if i in good_moves.keys() and guess_dist > good_moves[i][1]:
+                            continue
+                    good_moves.update({i: (res, step_size)})
+                else:
+                    if i in negative_delta_moves.keys() and guess_dist > negative_delta_moves[i][1]:
                         continue
-                move_data.update({i: (res, self.distance_calculator.sqr_distance(guess_feats, next_feats))})
+                    elif i not in negative_delta_moves.keys() and len(negative_delta_moves) < self.rest_sample_size:
+                        continue
+                    negative_delta_moves.update({i: (res, step_size)}) 
         N_pt_moves: list[list[tuple[int, str]]] = [[]]
-        good_sample: list[int] = [key for key, data in move_data.items() if data[1] > precision]
-        rest_sample: list[int] = [key for key, data in move_data.items() if data[1] <= precision]
-        sample = good_sample + random.sample(rest_sample, min(self.rest_sample_size, len(rest_sample)))
-        for pos in sample:
-            res: str = move_data[pos][0]
+        for pos, data in good_moves.items():
+            res: str = data[0]
+            adjoin_next_move: list[list[tuple[int, str]]] = list(map(lambda x: x + [(pos, res)], N_pt_moves))
+            N_pt_moves += adjoin_next_move
+        for pos, data in negative_delta_moves.items():
+            res: str = data[0]
             adjoin_next_move: list[list[tuple[int, str]]] = list(map(lambda x: x + [(pos, res)], N_pt_moves))
             N_pt_moves += adjoin_next_move
         next_seqs: Series = Series(list(self.apply_moves(next_seq, N_pt_moves)))
@@ -84,8 +90,9 @@ class RandMultiChange(SequenceDesigner):
             one_point_moves: list[tuple[int, str]] = list(product(range(len(next_seq)), AA_STRING))
             random.shuffle(one_point_moves)
             next_one_pt_muts: Iterator[tuple[str, int, str] | None] = seq_generator(next_seq, one_point_moves)
-            move_data: dict[int, tuple[str, float]] = {}
-            while not stop_sampling(move_data):
+            good_moves: dict[int, tuple[str, float]] = {}
+            negative_delta_moves: dict[int, tuple[str, float]] = {}
+            while len(good_moves) < self.good_sample_size:
                 guess_or_none = next(next_one_pt_muts)
                 if guess_or_none is None:
                     break
@@ -95,16 +102,24 @@ class RandMultiChange(SequenceDesigner):
                     continue
                 guess_dist: float = self.distance_calculator.sqr_distance(guess_feats, target_feats)
                 if guess_dist < next_dist:
-                    if i in move_data.keys():
-                        if guess_dist > move_data[i][1]:
+                    step_size: float = self.distance_calculator.sqr_distance(guess_feats, next_feats)
+                    if step_size > precision:
+                        if i in good_moves.keys() and guess_dist > good_moves[i][1]:
                             continue
-                    move_data.update({i: (res, self.distance_calculator.sqr_distance(guess_feats, next_feats))})
+                        good_moves.update({i: (res, step_size)})
+                    else:
+                        if i in negative_delta_moves.keys() and guess_dist > negative_delta_moves[i][1]:
+                            continue
+                        elif i not in negative_delta_moves.keys() and len(negative_delta_moves) < self.rest_sample_size:
+                            continue
+                        negative_delta_moves.update({i: (res, step_size)}) 
             N_pt_moves: list[list[tuple[int, str]]] = [[]]
-            good_sample: list[int] = [key for key, data in move_data.items() if data[1] > precision]
-            rest_sample: list[int] = [key for key, data in move_data.items() if data[1] <= precision]
-            sample = good_sample + random.sample(rest_sample, min(self.rest_sample_size, len(rest_sample)))
-            for pos in sample:
-                res: str = move_data[pos][0]
+            for pos, data in good_moves.items():
+                res: str = data[0]
+                adjoin_next_move: list[list[tuple[int, str]]] = list(map(lambda x: x + [(pos, res)], N_pt_moves))
+                N_pt_moves += adjoin_next_move
+            for pos, data in negative_delta_moves.items():
+                res: str = data[0]
                 adjoin_next_move: list[list[tuple[int, str]]] = list(map(lambda x: x + [(pos, res)], N_pt_moves))
                 N_pt_moves += adjoin_next_move
             next_seqs: Series = Series(list(self.apply_moves(next_seq, N_pt_moves)))
@@ -116,7 +131,7 @@ class RandMultiChange(SequenceDesigner):
             next_dists: Series = self.distance_calculator.sqr_distance_many_to_one(clean_next_feats, target_feats)
             next_place: int = int(next_dists.argmin())
             next_seq: str = clean_next_seqs.iloc[next_place]
-            step_size: float = self.distance_calculator.sqr_distance(clean_next_feats.iloc[next_place], clean_next_feats.iloc[0])  
+            step_size: float = self.distance_calculator.sqr_distance(clean_next_feats.iloc[next_place], clean_next_feats.iloc[0]) 
             self._print_progress(next_seq, next_dists.min(), time() - t) 
         return next_seq
     
