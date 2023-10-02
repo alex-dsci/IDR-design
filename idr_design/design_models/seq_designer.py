@@ -10,8 +10,8 @@ DEFAULT_PRECISION = 10 ** (-4)
 class SequenceDesigner(ABC):
     feature_calculator: FeatCalc 
     distance_calculator: DistCalc
-    seed: int | None
-    def __init__(self, seed: int | None = None) -> None:
+    seed: str | None
+    def __init__(self, seed: str | None = None) -> None:
         self.feature_calculator = FeatCalc()
         self.distance_calculator = DistCalc(self.feature_calculator)
         self.seed = seed
@@ -27,7 +27,7 @@ class SequenceDesigner(ABC):
         return output
     def _get_random_seqs(self, target: str, n: int) -> list[str]:
         if self.seed is not None:
-            random.seed(str(self.seed) + target)
+            random.seed(self.seed + target)
         output: list[str] = []
         for _ in range(n):
             new_seq: str = "".join([random.choice(AA_STRING) for _ in range(len(target))])
