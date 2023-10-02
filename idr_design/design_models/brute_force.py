@@ -25,7 +25,7 @@ class BruteForce(SequenceDesigner):
         clean_next_feats: DataFrame = df_next_feats.dropna()
         next_dists: Series = self.distance_calculator.sqr_distance_many_to_one(clean_next_feats, target_feats)
         next_place: int = int(next_dists.argmin())
-        next_seq: str = clean_next_seqs[next_place]
+        next_seq: str = clean_next_seqs.iloc[next_place]
         step_size: float = self.distance_calculator.sqr_distance(clean_next_feats.iloc[next_place], clean_next_feats.iloc[0])
         while step_size > precision:
             t = time()
@@ -38,7 +38,7 @@ class BruteForce(SequenceDesigner):
             next_dists = self.distance_calculator.sqr_distance_many_to_one(clean_next_feats, target_feats)
             next_place = int(next_dists.argmin())
             assert next_place >= 0
-            next_seq = clean_next_seqs[next_place]
+            next_seq = clean_next_seqs.iloc[next_place]
             step_size = self.distance_calculator.sqr_distance(clean_next_feats.iloc[next_place], clean_next_feats.iloc[0])
             print(next_seq, next_dists.min(), time() - t, end="\r") 
         return next_seq
