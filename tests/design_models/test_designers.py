@@ -23,7 +23,7 @@ class TestDesigners:
         # 8GLV (huge sequence)
         ("MREIVHIQGGQCGNQIGAKFWEVVSDEHGIDPTGTYHGDSDLQLERINVYFNEATGGRYVPRAILMDLEPGTMDSVRSGPYGQIFRPDNFVFGQTGAGNNWAKGHYTEGAELIDSVLDVVRKEAESCDCLQGFQVCHSLGGGTGSGMGTLLISKIREEYPDRMMLTFSVVPSPKVSDTVVEPYNATLSVHQLVENADECMVLDNEALYDICFRTLKLTTPTFGDLNHLISAVMSGITCCLRFPGQLNADLRKLAVNLIPFPRLHFFMVGFTPLTSRGSQQYRALTVPELTQQMWDAKNMMCAADPRHGRYLTASALFRGRMSTKEVDEQMLNVQNKNSSYFVEWIPNNVKSSVCDIPPKGLKMSATFIGNSTAIQEMFKRVSEQFTAMFRRKAFLHWYTGEGMDEMEFTEAESNMNDLVSEYQQYQDASAEEEGEFEGEEEEA", 1)
     ]
-    # BRUTE FORCE RUNS UNBEARABLY SLOW
+    # Brute force runs really slow on this test (and overall)
     @pytest.mark.skip
     @pytest.mark.parametrize(("i", "model"), product(
             range(len(small_example)),
@@ -47,11 +47,10 @@ class TestDesigners:
     fasta_lookup_sequences: dict[str, str]
     with open(f"{path_to_this_file}/../yeast_proteome_clean.fasta", "r") as fastaf:
         lines: list[str] = list(map(lambda line: line.strip("\n"),fastaf.readlines()))
-    # WAY TOO SLOW TO INCLUDE ALL FASTA IDS
     fasta_ids, sequences = lines[::2], lines[1::2]
     fasta_lookup_sequences = dict(zip(fasta_ids, sequences))
     # I hate this too but there are duplicates and pytest doesn't like user defined __init__'s 
-    # Prevent code from compiling forever
+    # Prevent code from compiling forever, can't include all fasta ids
     skip_after: int = 100
     @pytest.mark.parametrize(("fasta_id", "model"), product(
             # [fasta_ids[3]],
@@ -76,8 +75,8 @@ class TestDesigners:
             print()
         print("Final design:")
         print(result)
-        print("Dist, time")
-        print(dist, t)
+        print("Dist, time:")
+        print(f"{dist}, {t}")
     
     
         
