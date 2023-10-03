@@ -5,7 +5,7 @@ from itertools import product
 import random
 
 GOOD_SAMPLE_SIZE = 2
-REST_SAMPLE_SIZE = 30 
+REST_SAMPLE_SIZE = 14
 class RandMultiChange(IterativeGuessModel):
     good_sample_size: int
     rest_sample_size: int
