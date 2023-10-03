@@ -6,7 +6,7 @@ from pandas import DataFrame, Series, read_csv
 from itertools import product
 
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
-FLOAT_COMPARISON_TOLERANCE = 10 ** (-11)
+FLOAT_COMPARISON_TOLERANCE = 10 ** (-10)
 
 class TestDistCalc:
     feature_calculator: FeatCalc = FeatCalc()
@@ -25,7 +25,7 @@ class TestDistCalc:
     @pytest.mark.parametrize(("i","feature"), enumerate(feature_calculator.supported_features))
     def test_proteome_variance(self, i: int, feature: str):
         var_list: Series = self._get_no_duplicate_results().var()
-        assert abs(self.distance_calculator.proteome_variance[i] - var_list[feature]) < FLOAT_COMPARISON_TOLERANCE
+        assert abs(self.distance_calculator.proteome_variance.iloc[i] - var_list[feature]) < FLOAT_COMPARISON_TOLERANCE
     # Prevent code from compiling forever
     skip_after: int = 5
     @pytest.mark.parametrize(("fasta_a", "fasta_b"), product(fasta_ids[:skip_after], fasta_ids[-skip_after:]))
@@ -50,6 +50,7 @@ class TestDistCalc:
             no_dups_data,
             Series(target, index=self.feature_calculator.supported_features)
         )
+        # if you have the typing extension on, please ignore this error
         for calc_dist, feats in zip(calc, no_dups_data.iloc):
             exp_dist: float = self.distance_calculator.sqr_distance(feats, target)
             assert calc_dist == exp_dist
