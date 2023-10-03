@@ -5,9 +5,11 @@ from idr_design.feature_calculators.sub_features.isoelectric.main import handle_
 from idr_design.feature_calculators.sub_features.single_pass_features import SinglePassCalculator
 from typing import Callable as func, Any
 from pandas import Series, DataFrame, read_csv
+from idr_design.constants import FEATURE_JSON_FILE
 import os, json, re
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
 DEFAULT_PROTEOME_PATH: str = f"{path_to_this_file}/input_data/yeast_proteome_variance.csv"
+FEATURES_JSON_PATH: str = f"{path_to_this_file}/{FEATURE_JSON_FILE}" 
 
 # Use this class like:
 # seq = ...
@@ -19,7 +21,7 @@ class SequenceFeatureCalculator(dict[str, FeatCalcHandler]):
     supported_features: list[str]
     def __init__(self):
         super().__init__(self)
-        with open(f"{path_to_this_file}/all_features.json", "r") as f:
+        with open(FEATURES_JSON_PATH, "r") as f:
             features: dict[str, dict[str, Any]] = json.load(f)["other"]
         for feature in features:
             match feature:
@@ -32,7 +34,7 @@ class SequenceFeatureCalculator(dict[str, FeatCalcHandler]):
                 case "isoelectric_point":
                     self["isoelectric_point"] = handle_pI
                 case _:
-                    raise KeyError("Bad all_features.json input (initializing SequenceFeatureCalculator)", feature)
+                    raise KeyError("Bad features.json input (initializing SequenceFeatureCalculator)", feature)
         for feature, calc in SinglePassCalculator().items():
             self[feature] = calc
         self.supported_features = list(self.keys())

@@ -2,9 +2,10 @@ from collections.abc import Callable as func
 from typing import Any
 import json, re, os
 from math import log1p, lgamma
-from idr_design.constants import AA_STRING
+from idr_design.constants import AA_STRING, FEATURE_JSON_FILE
 
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
+FEATURES_JSON_PATH: str = f"{path_to_this_file}/../{FEATURE_JSON_FILE}" 
 
 def _sum_scores_counts(scores: dict[str, float], pattern_counts: dict[str, int]) -> float:
     sum: float = 0
@@ -82,7 +83,7 @@ class SinglePassCalculator(dict[str, func[[str | dict[str, int]], float]]):
 
     def __init__(self) -> None:
         super().__init__(self)
-        with open(f"{path_to_this_file}/../all_features.json", "r") as f:
+        with open(FEATURES_JSON_PATH, "r") as f:
             features: dict[str, dict[str, Any]] = json.load(f)["single_pass"]
         for feature, calculation in features.items():
             match calculation["type"]:
