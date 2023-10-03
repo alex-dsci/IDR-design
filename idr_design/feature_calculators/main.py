@@ -46,8 +46,8 @@ class SequenceFeatureCalculator(dict[str, FeatCalcHandler]):
             try:
                 value: float = self[feat](seq)
                 result.append(value)
-            except KeyboardInterrupt as stop:
-                raise stop
+            except KeyboardInterrupt as interrupt:
+                raise interrupt
             except:
                 result.append(None)
         return result

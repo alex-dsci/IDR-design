@@ -34,8 +34,8 @@ class TestDistCalc:
         try:
             feats_a = self.feature_calculator.run_feats(self.fasta_lookup_sequences[fasta_a])
             feats_b = self.feature_calculator.run_feats(self.fasta_lookup_sequences[fasta_b])
-        except KeyboardInterrupt as stop:
-            raise stop
+        except KeyboardInterrupt as interrupt:
+            raise interrupt
         except:
             return
         diff_sqr: list[float] = list(map(lambda x, y: (x - y) * (x - y), feats_a, feats_b))
