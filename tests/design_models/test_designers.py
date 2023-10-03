@@ -64,7 +64,7 @@ class TestDesigners:
         print()
         print(model)
         seq = self.fasta_lookup_sequences[fasta_id]
-        print(fasta_id)
+        print(f"{fasta_id}|PROGRESS")
         t = time()
         result = model.design_similar(1, seq, verbose=PRINT_PROGRESS)[0]
         t = time() - t
@@ -73,7 +73,7 @@ class TestDesigners:
         dist = sqrt(self.dc.sqr_distance(result_feats, target_feats))
         if PRINT_PROGRESS:
             print()
-        print("Final design:")
+        print(f"{fasta_id}|RESULT")
         print(result)
         print("Dist, time:")
         print(f"{dist}, {t}")
