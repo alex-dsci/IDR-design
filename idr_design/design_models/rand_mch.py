@@ -1,4 +1,5 @@
-from idr_design.design_models.template_classes import IterativeGuessModel
+from idr_design.design_models.logger import ProgressLogger
+from idr_design.design_models.template_classes import TERMINAL_DISPLAY, IterativeGuessModel
 from idr_design.constants import AA_STRING
 from pandas import Series
 from itertools import product
@@ -9,8 +10,8 @@ REST_SAMPLE_SIZE = 14
 class RandMultiChange(IterativeGuessModel):
     good_sample_size: int
     rest_sample_size: int
-    def __init__(self, seed: str | None = None, good_size: int = GOOD_SAMPLE_SIZE, rest_size: int = REST_SAMPLE_SIZE) -> None:
-        super().__init__(seed)
+    def __init__(self, seed: str | None = None, log: ProgressLogger | None = TERMINAL_DISPLAY, good_size: int = GOOD_SAMPLE_SIZE, rest_size: int = REST_SAMPLE_SIZE) -> None:
+        super().__init__(seed, log)
         self.good_sample_size = good_size
         self.rest_sample_size = rest_size
     def next_round_seqs(self) -> Series:
