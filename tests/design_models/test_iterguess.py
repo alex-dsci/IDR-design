@@ -10,7 +10,7 @@ path_to_this_file = os.path.dirname(os.path.realpath(__file__))
 SEED = "2022"
 PRINT_PROGRESS = True
 @pytest.mark.slow
-class TestDesigners:
+class TestIterativeGuessModels:
     brute_force: BruteForce = BruteForce(SEED)
     sample_multipt: RandMultiChange = RandMultiChange(seed=SEED)
     sfc = brute_force.feature_calculator
@@ -24,7 +24,7 @@ class TestDesigners:
         ("MREIVHIQGGQCGNQIGAKFWEVVSDEHGIDPTGTYHGDSDLQLERINVYFNEATGGRYVPRAILMDLEPGTMDSVRSGPYGQIFRPDNFVFGQTGAGNNWAKGHYTEGAELIDSVLDVVRKEAESCDCLQGFQVCHSLGGGTGSGMGTLLISKIREEYPDRMMLTFSVVPSPKVSDTVVEPYNATLSVHQLVENADECMVLDNEALYDICFRTLKLTTPTFGDLNHLISAVMSGITCCLRFPGQLNADLRKLAVNLIPFPRLHFFMVGFTPLTSRGSQQYRALTVPELTQQMWDAKNMMCAADPRHGRYLTASALFRGRMSTKEVDEQMLNVQNKNSSYFVEWIPNNVKSSVCDIPPKGLKMSATFIGNSTAIQEMFKRVSEQFTAMFRRKAFLHWYTGEGMDEMEFTEAESNMNDLVSEYQQYQDASAEEEGEFEGEEEEA", 1)
     ]
     # Brute force runs really slow on this test (and overall)
-    @pytest.mark.skip
+    # @pytest.mark.skip
     @pytest.mark.parametrize(("i", "model"), product(
             range(len(small_example)),
             [sample_multipt, brute_force]
