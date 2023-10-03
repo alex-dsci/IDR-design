@@ -3,8 +3,8 @@ from idr_design.constants import AA_STRING
 from idr_design.feature_calculators.main import DistanceCalculator as DistCalc, SequenceFeatureCalculator as FeatCalc
 from abc import abstractmethod, ABC
 from sys import stdout
-from typing import TextIO
-from pandas import Series, DataFrame
+from typing import TextIO, Iterator
+from pandas import Series
 from time import time
 from math import sqrt
 
@@ -73,23 +73,31 @@ class IterativeGuessModel(SequenceDesigner, ABC):
         self.query_feats = Series(self.feature_calculator.run_feats(self.query_seq), index=self.feature_calculator.supported_features)
         self.target_feats = Series(self.feature_calculator.run_feats(target), index=self.feature_calculator.supported_features)
         # It doesn't matter what step_size initially is, I just need the loop to run at least once.
+        # Typically you would do this with numpy.inf but I don't have numpy imported
         step_size: float = self.precision + 1
         while step_size > self.precision:
             t = time()
-            next_seqs: Series = self.next_round_seqs()
-            dict_next_feats: dict[str, dict[str, float | None]] = self.feature_calculator.run_feats_mult_seqs_skip_fail(next_seqs)
-            df_next_feats: DataFrame = DataFrame(dict_next_feats.values())
-            failed_rows = df_next_feats.index[df_next_feats.isna().any(axis=1)]
-            clean_next_seqs: Series = next_seqs.drop(index=failed_rows)
-            clean_next_feats: DataFrame = df_next_feats.dropna()
-            next_sqds: Series = self.distance_calculator.sqr_distance_many_to_one(clean_next_feats, self.target_feats)
-            next_index: int = int(next_sqds.argmin())
-            assert next_index >= 0
-            self.query_seq = str(clean_next_seqs.iloc[next_index])
-            self.query_feats = clean_next_feats.iloc[next_index]
-            step_size = self.distance_calculator.sqr_distance(self.query_feats, clean_next_feats.iloc[0]) 
-            self._print_progress(self.query_seq, next_sqds.min(), time() - t) 
+            next_seqs: Iterator[str] = self.next_round_seqs()
+            next_seq: str = self.query_seq
+            next_feats: Series = self.query_feats
+            next_sqd: float = self.distance_calculator.sqr_distance(self.query_feats, self.target_feats)
+            for guess in next_seqs:
+                try:
+                    guess_feats: Series = Series(self.feature_calculator.run_feats(guess), index=self.feature_calculator.supported_features)
+                except KeyboardInterrupt as interrupt:
+                    raise interrupt
+                except:
+                    continue
+                guess_sqd: float = self.distance_calculator.sqr_distance(guess_feats, self.target_feats)
+                if guess_sqd < next_sqd:
+                    next_seq = guess
+                    next_feats = guess_feats
+                    next_sqd = guess_sqd
+            step_size = self.distance_calculator.sqr_distance(next_feats, self.query_feats)
+            self.query_seq = next_seq
+            self.query_feats = next_feats
+            self._print_progress(self.query_seq, next_sqd, time() - t) 
         return self.query_seq
     @abstractmethod
-    def next_round_seqs(self) -> Series:
+    def next_round_seqs(self) -> Iterator[str]:
         pass
