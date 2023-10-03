@@ -8,8 +8,8 @@ from pandas import Series, DataFrame
 from time import time
 from math import sqrt
 
-TERMINAL_LENGTH = 100
-DEFAULT_PRECISION = 10 ** (-4)
+TERMINAL_LENGTH: int | None = None
+DEFAULT_PRECISION: float = 10 ** (-4)
 class SequenceDesigner(ABC):
     feature_calculator: FeatCalc 
     distance_calculator: DistCalc
@@ -82,13 +82,13 @@ class IterativeGuessModel(SequenceDesigner, ABC):
             failed_rows = df_next_feats.index[df_next_feats.isna().any(axis=1)]
             clean_next_seqs: Series = next_seqs.drop(index=failed_rows)
             clean_next_feats: DataFrame = df_next_feats.dropna()
-            next_dists: Series = self.distance_calculator.sqr_distance_many_to_one(clean_next_feats, self.target_feats)
-            next_place: int = int(next_dists.argmin())
-            assert next_place >= 0
-            self.query_seq = str(clean_next_seqs.iloc[next_place])
-            self.query_feats = clean_next_feats.iloc[next_place]
-            step_size: float = self.distance_calculator.sqr_distance(self.query_feats, clean_next_feats.iloc[0]) 
-            self._print_progress(self.query_seq, next_dists.min(), time() - t) 
+            next_sqds: Series = self.distance_calculator.sqr_distance_many_to_one(clean_next_feats, self.target_feats)
+            next_index: int = int(next_sqds.argmin())
+            assert next_index >= 0
+            self.query_seq = str(clean_next_seqs.iloc[next_index])
+            self.query_feats = clean_next_feats.iloc[next_index]
+            step_size = self.distance_calculator.sqr_distance(self.query_feats, clean_next_feats.iloc[0]) 
+            self._print_progress(self.query_seq, next_sqds.min(), time() - t) 
         return self.query_seq
     @abstractmethod
     def next_round_seqs(self) -> Series:
