@@ -1,6 +1,6 @@
 from idr_design.design_models.brute_force import BruteForce
 from idr_design.design_models.rand_mch import RandMultiChange
-from idr_design.design_models.template_classes import SequenceDesigner
+from idr_design.design_models.template_classes import IterativeGuessModel
 from idr_design.design_models.logger import ProgressLogger
 from itertools import product
 import pytest, os
@@ -24,13 +24,13 @@ class TestIterativeGuessModels:
         # 8GLV (huge sequence)
         ("MREIVHIQGGQCGNQIGAKFWEVVSDEHGIDPTGTYHGDSDLQLERINVYFNEATGGRYVPRAILMDLEPGTMDSVRSGPYGQIFRPDNFVFGQTGAGNNWAKGHYTEGAELIDSVLDVVRKEAESCDCLQGFQVCHSLGGGTGSGMGTLLISKIREEYPDRMMLTFSVVPSPKVSDTVVEPYNATLSVHQLVENADECMVLDNEALYDICFRTLKLTTPTFGDLNHLISAVMSGITCCLRFPGQLNADLRKLAVNLIPFPRLHFFMVGFTPLTSRGSQQYRALTVPELTQQMWDAKNMMCAADPRHGRYLTASALFRGRMSTKEVDEQMLNVQNKNSSYFVEWIPNNVKSSVCDIPPKGLKMSATFIGNSTAIQEMFKRVSEQFTAMFRRKAFLHWYTGEGMDEMEFTEAESNMNDLVSEYQQYQDASAEEEGEFEGEEEEA", 1)
     ]
-    # Brute force runs really slow on this test (and overall)
+    # Usually want to test print. Comment this out if you want to see a small example.
     @pytest.mark.skip
     @pytest.mark.parametrize(("i", "model"), product(
             range(len(small_example)),
             [sample_multipt, brute_force]
         ))
-    def test_display(self, i: int, model: SequenceDesigner):
+    def test_display(self, i: int, model: IterativeGuessModel):
         print()
         print(model)
         seq, n = self.small_example[i]
@@ -44,47 +44,74 @@ class TestIterativeGuessModels:
             dist = sqrt(self.dc.sqr_distance(result_feats, target_feats))
             print(result, dist)
         print("Average time:", t / n)
-    fasta_ids: list[str]
+    fasta_ids: list[str] = []
     fasta_lookup_sequences: dict[str, str]
-    with open(f"{path_to_this_file}/../yeast_proteome_clean.fasta", "r") as fastaf:
+    with open(f"{path_to_this_file}/../disprot_idrs_clean.fasta", "r") as fastaf:
         lines: list[str] = list(map(lambda line: line.strip("\n"),fastaf.readlines()))
-    fasta_ids, sequences = lines[::2], lines[1::2]
-    fasta_lookup_sequences = dict(zip(fasta_ids, sequences))
-    # I hate this too but there are duplicates and pytest doesn't like user defined __init__'s
-    with open(f"{path_to_this_file}/iter_guess_output.txt", "w"):
-        pass
+    terrible_fasta_ids, sequences = lines[::2], lines[1::2]
+    fasta_lookup_sequences = dict(zip(terrible_fasta_ids, sequences))
     # Prevent code from compiling forever, can't include all fasta ids
-    skip_after: int = 100
+    skip_after: int = 50
+    n = 30
+    admissible_length = range(15,40)
+    for id, seq in fasta_lookup_sequences.items():
+        if len(fasta_ids) >= skip_after:
+            break
+        if len(seq) not in admissible_length:
+            continue
+        try:
+            sfc.run_feats(seq)
+            fasta_ids.append(id)
+        except KeyboardInterrupt as interrupt:
+            raise interrupt
+        except:
+            continue
+    # I hate this too but there are duplicates and pytest doesn't like user defined __init__'s
+
+    # clear file
+    outfiles = ["brute_force_output.txt", "rand_mch_output.txt"]
+    for outfile in outfiles:
+        with open(f"{path_to_this_file}/{outfile}", "w"):
+            pass
     @pytest.mark.parametrize(("fasta_id", "model"), product(
             # [fasta_ids[3]],
-            fasta_ids[:skip_after],
-            # [sample_multipt, brute_force]
+            fasta_ids,
+            [sample_multipt, brute_force]
             # [brute_force, sample_multipt]
-            [sample_multipt]
+            # [sample_multipt]
             # [brute_force]
         ))
-    def test_print(self, fasta_id: str, model: SequenceDesigner):
-        with open(f"{path_to_this_file}/iter_guess_output.txt", "a") as f:
+    def test_print(self, fasta_id: str, model: IterativeGuessModel):
+        if isinstance(model, BruteForce):
+            outfile = self.outfiles[0]
+        elif isinstance(model, RandMultiChange):
+            outfile = self.outfiles[1]
+        else:
+            raise ValueError(model)
+        with open(f"{path_to_this_file}/{outfile}", "a") as f:
             log = ProgressLogger(
                 file=f,
                 display_mode=False,
-                col_names= [f"{fasta_id}|PROGRESS", "dist_to_target", "round_time"] 
+                col_names= [f"{fasta_id}|PROGRESS", "dist_to_target", "time"] 
             )
-            if isinstance(model, RandMultiChange):
-                model.log = log
-                model.logged_time = "round"
+            model.log = log
+            model.logged_time = "total"
             # print(model, file=f)
             seq = self.fasta_lookup_sequences[fasta_id]
             t = time()
-            result = model.design_similar(1, seq, verbose=True)[0]
+            results = model.design_similar(self.n, seq, verbose=True)
             t = time() - t
-            result_feats = self.sfc.run_feats(result)
-            target_feats = self.sfc.run_feats(seq)
-            dist = sqrt(self.dc.sqr_distance(result_feats, target_feats))
             print(f"{fasta_id}|RESULT", file=f)
-            print(result, file=f)
-            print("Dist, time:", file=f)
-            print(f"{dist}, {t}", file=f)
+            for result in results:
+                result_feats = self.sfc.run_feats(result)
+                target_feats = self.sfc.run_feats(seq)
+                dist = sqrt(self.dc.sqr_distance(result_feats, target_feats))
+                print(result, file=f)
+                print(f"Dist: {dist}", file=f)
+            print("Average time:", t / self.n, file=f)
+            
+            
+            
     
     
         
