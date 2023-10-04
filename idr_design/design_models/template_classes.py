@@ -13,10 +13,9 @@ from sys import stdout
 TERMINAL_LENGTH: int | None = 100 
 DEFAULT_PRECISION: float = 10 ** (-4)
 
-PROGRESS_COLUMNS = ["seq", "dist_to_target", "avg_round_time"]
 TERMINAL_DISPLAY = ProgressLogger(
     file=stdout,
-    col_names=PROGRESS_COLUMNS, 
+    col_names=["seq", "dist_to_target", "avg_round_time"], 
     display_mode=True,
     max_lens=[100, 20, 20]
 )
@@ -59,18 +58,19 @@ class SequenceDesigner(ABC):
     def search_similar(self, seq: str, target: str) -> str:
         pass
 
+
 class IterativeGuessModel(SequenceDesigner, ABC):
     precision: float
     query_seq: str
     query_feats: Series
     target_feats: Series
-    logged_time: Union[Literal["avg"], Literal["round"]]
-    def search_similar(self, query: str, target: str, precision: float = DEFAULT_PRECISION, logged_time: Union[Literal["avg"], Literal["round"]] = "avg") -> str:
+    LogTimeOptions = Union[Literal["avg"], Literal["round"], Literal["total"]] 
+    logged_time: LogTimeOptions = "avg"
+    def search_similar(self, query: str, target: str, precision: float = DEFAULT_PRECISION) -> str:
         self.precision = precision
         self.query_seq = query
         self.query_feats = Series(self.feature_calculator.run_feats(self.query_seq), index=self.feature_calculator.supported_features)
         self.target_feats = Series(self.feature_calculator.run_feats(target), index=self.feature_calculator.supported_features)
-        self.logged_time = logged_time
         # It doesn't matter what step_size initially is, I just need the loop to run at least once.
         # Typically you would do this with numpy.inf but I don't have numpy imported
         step_size: float = self.precision + 1
@@ -103,8 +103,10 @@ class IterativeGuessModel(SequenceDesigner, ABC):
             if self.verbose and self.log is not None:
                 if self.logged_time == "avg":
                     t = (time() - total_t) / count_iters
-                else:
+                elif self.logged_time == "round":
                     t = time() - round_t
+                else:
+                    t = time() - total_t
                 self.log.write_data([
                     next_seq,
                     str(sqrt(next_sqd)),
