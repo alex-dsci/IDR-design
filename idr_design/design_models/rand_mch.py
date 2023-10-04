@@ -1,5 +1,5 @@
 from idr_design.design_models.logger import ProgressLogger
-from idr_design.design_models.template_classes import TERMINAL_DISPLAY, IterativeGuessModel
+from idr_design.design_models.template_classes import TERMINAL_DISPLAY, IterativeGuessModel 
 from idr_design.constants import AA_STRING
 from pandas import Series
 from itertools import product

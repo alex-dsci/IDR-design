@@ -1,4 +1,4 @@
-from idr_design.design_models.template_classes import IterativeGuessModel
+from idr_design.design_models.template_classes import IterativeGuessModel 
 from idr_design.constants import AA_STRING
 from pandas import Series
 from itertools import product
