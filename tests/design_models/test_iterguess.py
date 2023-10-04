@@ -1,6 +1,6 @@
-from idr_design.design_models.brute_force import BruteForce
-from idr_design.design_models.rand_mch import RandMultiChange
-from idr_design.design_models.template_classes import IterativeGuessModel
+from idr_design.design_models.iter_guess_model import BruteForce
+from idr_design.design_models.iter_guess_model import RandMultiChange
+from idr_design.design_models.iter_guess_model import IterativeGuessModel
 from idr_design.design_models.logger import ProgressLogger
 from itertools import product
 import pytest, os
