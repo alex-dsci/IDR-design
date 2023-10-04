@@ -2,7 +2,7 @@ import random
 from idr_design.constants import AA_STRING
 from itertools import product
 from idr_design.design_models.logger import ProgressLogger
-from idr_design.design_models.template_classes import DEFAULT_PRECISION, TERMINAL_DISPLAY, SequenceDesigner
+from idr_design.design_models.generic_designer import DEFAULT_PRECISION, TERMINAL_DISPLAY, SequenceDesigner
 
 
 from pandas import Series
