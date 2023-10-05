@@ -11,7 +11,7 @@ DEFAULT_PRECISION: float = 10 ** (-4)
 
 TERMINAL_DISPLAY = ProgressLogger(
     file=stdout,
-    col_names=["seq", "dist_to_target", "avg_round_time"], 
+    col_names=["seq", "dist_to_target", "time"], 
     display_mode=True,
     max_lens=[100, 20, 20]
 )

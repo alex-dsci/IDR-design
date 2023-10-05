@@ -20,7 +20,7 @@ class IterativeGuessModel(SequenceDesigner, ABC):
     query_feats: Series
     target_feats: Series
     LogTimeOptions = Union[Literal["avg"], Literal["round"], Literal["total"]]
-    logged_time: LogTimeOptions = "avg"
+    logged_time: LogTimeOptions = "total"
     def search_similar(self, query: str, target: str, precision: float = DEFAULT_PRECISION) -> str:
         self.precision = precision
         self.query_seq = query
