@@ -21,9 +21,12 @@ class SequenceDesigner(ABC):
     seed: str | None
     log: ProgressLogger | None
     verbose: bool
-    def __init__(self, seed: str | None = None, log: ProgressLogger | None = TERMINAL_DISPLAY) -> None:
+    def __init__(self, distance_calculator: DistCalc | None = None, seed: str | None = None, log: ProgressLogger | None = TERMINAL_DISPLAY) -> None:
         self.feature_calculator = FeatCalc()
-        self.distance_calculator = DistCalc(self.feature_calculator)
+        if distance_calculator is not None:
+            self.distance_calculator = distance_calculator
+        else:
+            self.distance_calculator = DistCalc(self.feature_calculator)
         self.seed = seed
         self.log = log
     def design_similar(self, query: str | int, target: str, verbose: bool = False) -> list[str]:
