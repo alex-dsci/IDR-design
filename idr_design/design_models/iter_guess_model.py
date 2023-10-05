@@ -11,7 +11,7 @@ from pandas import Series
 from abc import ABC, abstractmethod
 from math import sqrt
 from time import time
-from typing import Iterator, Literal, Union
+from typing import Iterator, Literal
 
 
 class IterativeGuessModel(SequenceDesigner, ABC):
@@ -19,7 +19,7 @@ class IterativeGuessModel(SequenceDesigner, ABC):
     query_seq: str
     query_feats: Series
     target_feats: Series
-    LogTimeOptions = Union[Literal["avg"], Literal["round"], Literal["total"]]
+    LogTimeOptions = Literal["avg"] | Literal["round"] | Literal["total"]
     logged_time: LogTimeOptions = "total"
     def search_similar(self, query: str, target: str, precision: float = DEFAULT_PRECISION) -> str:
         self.precision = precision
