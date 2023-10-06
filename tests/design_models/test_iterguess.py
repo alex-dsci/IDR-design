@@ -12,7 +12,7 @@ SEED = "2022"
 
 @pytest.mark.slow
 class TestIterativeGuessModels:
-    brute_force: BruteForce = BruteForce(SEED)
+    brute_force: BruteForce = BruteForce(seed=SEED)
     sample_multipt: RandMultiChange = RandMultiChange(seed=SEED)
     sfc = brute_force.feature_calculator
     dc = brute_force.distance_calculator
@@ -25,7 +25,7 @@ class TestIterativeGuessModels:
         ("MREIVHIQGGQCGNQIGAKFWEVVSDEHGIDPTGTYHGDSDLQLERINVYFNEATGGRYVPRAILMDLEPGTMDSVRSGPYGQIFRPDNFVFGQTGAGNNWAKGHYTEGAELIDSVLDVVRKEAESCDCLQGFQVCHSLGGGTGSGMGTLLISKIREEYPDRMMLTFSVVPSPKVSDTVVEPYNATLSVHQLVENADECMVLDNEALYDICFRTLKLTTPTFGDLNHLISAVMSGITCCLRFPGQLNADLRKLAVNLIPFPRLHFFMVGFTPLTSRGSQQYRALTVPELTQQMWDAKNMMCAADPRHGRYLTASALFRGRMSTKEVDEQMLNVQNKNSSYFVEWIPNNVKSSVCDIPPKGLKMSATFIGNSTAIQEMFKRVSEQFTAMFRRKAFLHWYTGEGMDEMEFTEAESNMNDLVSEYQQYQDASAEEEGEFEGEEEEA", 1)
     ]
     # Usually want to test print. Comment this out if you want to see a small example.
-    @pytest.mark.skip
+    # @pytest.mark.skip
     @pytest.mark.parametrize(("i", "model"), product(
             range(len(small_example)),
             [sample_multipt, brute_force]
@@ -68,11 +68,12 @@ class TestIterativeGuessModels:
             continue
     # I hate this too but there are duplicates and pytest doesn't like user defined __init__'s
 
-    # clear file
-    outfiles = ["brute_force_output.txt", "rand_mch_output.txt"]
-    for outfile in outfiles:
-        with open(f"{path_to_this_file}/{outfile}", "w"):
-            pass
+    # # clear file
+    # outfiles = ["brute_force_output.txt", "rand_mch_output.txt"]
+    # for outfile in outfiles:
+    #     with open(f"{path_to_this_file}/{outfile}", "w"):
+    #         pass
+    @pytest.mark.skip
     @pytest.mark.parametrize(("fasta_id", "model"), product(
             # [fasta_ids[3]],
             fasta_ids,
