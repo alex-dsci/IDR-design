@@ -27,6 +27,7 @@ class ProgressLogger:
         if self.display_mode:
             self.file.write("\r")
             print(s, end="", file=self.file, **kwargs)
+            self.file.flush()
         else:
             print(s, file=self.file, **kwargs)
     def _truncate_after_n(self, s: str, n: int) -> str:
