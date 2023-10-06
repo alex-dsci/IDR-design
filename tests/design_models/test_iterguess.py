@@ -68,11 +68,11 @@ class TestIterativeGuessModels:
             continue
     # I hate this too but there are duplicates and pytest doesn't like user defined __init__'s
 
-    # # clear file
-    # outfiles = ["brute_force_output.txt", "rand_mch_output.txt"]
-    # for outfile in outfiles:
-    #     with open(f"{path_to_this_file}/{outfile}", "w"):
-    #         pass
+    # clear file
+    outfiles = ["brute_force_output.txt", "rand_mch_output.txt"]
+    for outfile in outfiles:
+        with open(f"{path_to_this_file}/{outfile}", "w"):
+            pass
     @pytest.mark.skip
     @pytest.mark.parametrize(("fasta_id", "model"), product(
             # [fasta_ids[3]],

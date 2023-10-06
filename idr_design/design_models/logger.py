@@ -25,8 +25,8 @@ class ProgressLogger:
             self._write_w_columns(data)
     def print(self, s: str = "", **kwargs):
         if self.display_mode:
-            # self.file.write("\033[F")
-            print(s, end="\r", file=self.file, **kwargs)
+            self.file.write("\r")
+            print(s, end="", file=self.file, **kwargs)
         else:
             print(s, file=self.file, **kwargs)
     def _truncate_after_n(self, s: str, n: int) -> str:
