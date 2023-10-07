@@ -180,12 +180,16 @@ class LogToCSV(PrintDesignProgress):
         self.summary_df = self.summary_df.set_index("num")
         self.summary_df.to_csv(path)
     def report_round(self, guess_seq: str, iteration: int, distance: float, time: float) -> None:
-        self.one_design_df = concat((self.one_design_df, DataFrame({
+        next_row = DataFrame({
             "iteration": [iteration],
             "seq": [guess_seq],
             "dist": [distance],
             "time": [time]
-        })))
+        })
+        if len(self.one_design_df) == 0:
+            self.one_design_df = next_row
+        else:     
+            self.one_design_df = concat((self.one_design_df, next_row))
     def enter_search_similar(self, job_name: str, job_num: int, query_seq: str, distance: float) -> None:
         self.one_design_df = DataFrame(columns=ONE_DES_COLUMNS)
         self.qry = query_seq
@@ -193,11 +197,15 @@ class LogToCSV(PrintDesignProgress):
         path = f"{self.dir}/{job_name}_{job_num}.csv"
         self.one_design_df = self.one_design_df.set_index("iteration")
         self.one_design_df.to_csv(path)
-        self.summary_df = concat((self.summary_df, DataFrame({
+        next_row = DataFrame({
             "num": [job_num],
             "time": [time],
             "target": [self.tgt],
             "query": [self.qry],
             "design": [final_seq],
             "design_dist": [final_distance]
-        })))
+        })
+        if len(self.summary_df) == 0:
+            self.summary_df = next_row
+        else:     
+            self.summary_df = concat((self.summary_df, next_row))
