@@ -8,7 +8,7 @@ from pandas import Series, DataFrame, read_csv
 from idr_design.constants import FEATURE_JSON_FILE
 import os, json, re
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
-DEFAULT_PROTEOME_PATH: str = f"{path_to_this_file}/input_data/yeast_proteome_variance.csv"
+DEFAULT_PROTEOME_PATH: str = f"{path_to_this_file}/input_data/disprot_variance.csv"
 FEATURES_JSON_PATH: str = f"{path_to_this_file}/{FEATURE_JSON_FILE}" 
 
 # Use this class like:

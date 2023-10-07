@@ -10,7 +10,7 @@ FLOAT_COMPARISON_TOLERANCE = 10 ** (-10)
 
 class TestDistCalc:
     feature_calculator: FeatCalc = FeatCalc()
-    distance_calculator = DistCalc(feature_calculator)
+    distance_calculator = DistCalc(feature_calculator, proteome_path=f"{path_to_this_file}/yeast_test_var.csv")
     fasta_ids: list[str]
     fasta_lookup_sequences: dict[str, str]
     fasta_lookup_results: DataFrame
