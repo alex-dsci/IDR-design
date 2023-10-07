@@ -1,27 +1,23 @@
 import random
 from idr_design.constants import AA_STRING
 from idr_design.feature_calculators.main import DistanceCalculator as DistCalc, SequenceFeatureCalculator as FeatCalc
-from idr_design.design_models.logger import ProgressLogger
+from idr_design.design_models.progress_logger import PrintDesignProgress, DEV_NULL
 from abc import abstractmethod, ABC
-from sys import stdout
-from sys import stdout
+from pandas import Series, concat, DataFrame
+from time import time
+from typing import cast
 
 TERMINAL_LENGTH: int | None = 100 
 DEFAULT_PRECISION: float = 10 ** (-4)
 
-TERMINAL_DISPLAY = ProgressLogger(
-    file=stdout,
-    col_names=["seq", "dist_to_target", "time"], 
-    display_mode=True,
-    max_lens=[100, 20, 20]
-)
 class SequenceDesigner(ABC):
     feature_calculator: FeatCalc 
     distance_calculator: DistCalc
     seed: str | None
-    log: ProgressLogger | None
-    verbose: bool
-    def __init__(self, distance_calculator: DistCalc | None = None, seed: str | None = None, log: ProgressLogger | None = TERMINAL_DISPLAY) -> None:
+    log: PrintDesignProgress
+    job_name: str
+    job_num: int
+    def __init__(self, distance_calculator: DistCalc | None = None, seed: str | None = None, log: PrintDesignProgress = DEV_NULL) -> None:
         self.feature_calculator = FeatCalc()
         if distance_calculator is not None:
             self.distance_calculator = distance_calculator
@@ -29,21 +25,33 @@ class SequenceDesigner(ABC):
             self.distance_calculator = DistCalc(self.feature_calculator)
         self.seed = seed
         self.log = log
-    def design_similar(self, query: str | int, target: str, verbose: bool = False) -> list[str]:
-        self.verbose = verbose               
-        queries: list[str]
+    def design_similar(self, query: str | int, target: str, verbose: bool = False, job_name: str = "Design") -> Series: # type Series[str]
+        assert job_name.strip() != ""
+        self.job_name = job_name
+        orig_log: PrintDesignProgress = self.log
+        if not verbose:
+            self.log = DEV_NULL              
+        qs: Series
         if isinstance(query, int):
-            queries = self._get_random_seqs(target, query)
+            qs = self._get_random_seqs(target, query)
         else:
-            queries = [query]
-        output: list[str] = []
-        for seq in queries:
-            output.append(self.search_similar(seq, target))
-        return output
-    def _get_random_seqs(self, target: str, n: int) -> list[str]:
+            qs = Series((query))
+        queries = cast("Series[str]", qs)
+        self.log.enter_design_similar(job_name=self.job_name, tgt_seq=target, num_designs=len(queries), algorithm=str(self.__class__.__name__))
+        output: DataFrame = DataFrame(columns=("time", "seq"))
+        for i, seq in enumerate(queries):
+            self.job_num = i
+            t: float = time()
+            designed_seq: str = self.search_similar(seq, target)
+            t = time() - t
+            output = concat((output, DataFrame({"time": [t], "seq": [designed_seq]})))
+        self.log.exit_design_similar(job_name=self.job_name, query_seqs=queries, final_seqs=output["seq"], times=output["time"])
+        self.log = orig_log
+        return output["seq"]
+    def _get_random_seqs(self, target: str, n: int) -> Series: # type Series[str]
         if self.seed is not None:
             random.seed(self.seed + target)
-        output: list[str] = []
+        output = cast("Series[str]", Series())
         for _ in range(n):
             new_seq: str = "".join([random.choice(AA_STRING) for _ in range(len(target))])
             while True:
@@ -51,8 +59,8 @@ class SequenceDesigner(ABC):
                     new_seq: str = "".join([random.choice(AA_STRING) for _ in range(len(target))])
                     continue
                 break
-            output.append(new_seq)
-        return output
+            output = concat((output, Series((new_seq))))
+        return Series(output)
     @abstractmethod
     def search_similar(self, seq: str, target: str) -> str:
         pass

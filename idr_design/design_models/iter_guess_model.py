@@ -1,17 +1,14 @@
 import random
 from idr_design.constants import AA_STRING
 from itertools import product
-from idr_design.design_models.logger import ProgressLogger
-from idr_design.design_models.generic_designer import DEFAULT_PRECISION, TERMINAL_DISPLAY, SequenceDesigner
+from idr_design.design_models.generic_designer import DEFAULT_PRECISION, SequenceDesigner
 from idr_design.feature_calculators.main import DistanceCalculator
-
+from idr_design.design_models.progress_logger import PrintDesignProgress, DEV_NULL
 from pandas import Series
-
-
 from abc import ABC, abstractmethod
 from math import sqrt
 from time import time
-from typing import Iterator, Literal
+from typing import Iterator
 
 
 class IterativeGuessModel(SequenceDesigner, ABC):
@@ -19,23 +16,21 @@ class IterativeGuessModel(SequenceDesigner, ABC):
     query_seq: str
     query_feats: Series
     target_feats: Series
-    LogTimeOptions = Literal["avg"] | Literal["round"] | Literal["total"]
-    logged_time: LogTimeOptions = "total"
     def search_similar(self, query: str, target: str, precision: float = DEFAULT_PRECISION) -> str:
         self.precision = precision
         self.query_seq = query
         self.query_feats = Series(self.feature_calculator.run_feats(self.query_seq), index=self.feature_calculator.supported_features)
         self.target_feats = Series(self.feature_calculator.run_feats(target), index=self.feature_calculator.supported_features)
+        query_dist: float = sqrt(self.distance_calculator.sqr_distance(self.query_feats, self.target_feats))
+        self.log.enter_search_similar(job_name=self.job_name, job_num=self.job_num, query_seq=query, distance=query_dist)
         # It doesn't matter what step_size initially is, I just need the loop to run at least once.
         # Typically you would do this with numpy.inf but I don't have numpy imported
         step_size: float = self.precision + 1
         count_iters: int = 0
-        total_t: float = time()
-        if self.verbose and self.log is not None:
-            self.log.write_header()
+        t: float = time()
+        self.log.report_round(guess_seq=query, iteration=count_iters, distance=query_dist, time=0)
         while step_size > self.precision:
             count_iters += 1
-            round_t: float = time()
             next_seqs: Iterator[str] = self.next_round_seqs()
             next_seq: str = self.query_seq
             next_feats: Series = self.query_feats
@@ -55,20 +50,9 @@ class IterativeGuessModel(SequenceDesigner, ABC):
             step_size = self.distance_calculator.sqr_distance(next_feats, self.query_feats)
             self.query_seq = next_seq
             self.query_feats = next_feats
-            if self.verbose and self.log is not None:
-                if self.logged_time == "avg":
-                    t = (time() - total_t) / count_iters
-                elif self.logged_time == "round":
-                    t = time() - round_t
-                else:
-                    t = time() - total_t
-                self.log.write_data([
-                    next_seq,
-                    str(sqrt(next_sqd)),
-                    str(t)
-                ])
-        if self.verbose and self.log is not None and self.log.display_mode:
-            self.log.print("\n")
+            self.log.report_round(guess_seq=next_seq, iteration=count_iters, distance=sqrt(next_sqd), time=time()-t) 
+        final_dist: float = sqrt(self.distance_calculator.sqr_distance(self.query_feats, self.target_feats))
+        self.log.exit_search_similar(job_name=self.job_name, job_num=self.job_num, final_seq=self.query_seq, final_distance=final_dist, time=time()-t)
         return self.query_seq
     @abstractmethod
     def next_round_seqs(self) -> Iterator[str]:
@@ -84,19 +68,17 @@ class BruteForce(IterativeGuessModel):
             new_seq: str = self.query_seq[:i] + res + self.query_seq[i+1:]
             yield new_seq
 
-
-GOOD_SAMPLE_SIZE = 2
-REST_SAMPLE_SIZE = 14
-
+GOOD_SAMPLE_SIZE = 3
+REST_SAMPLE_SIZE = 5
 
 class RandMultiChange(IterativeGuessModel):
     good_sample_size: int
     rest_sample_size: int
-    def __init__(self, distance_calculator: DistanceCalculator | None = None, seed: str | None = None, log: ProgressLogger | None = TERMINAL_DISPLAY, good_size: int = GOOD_SAMPLE_SIZE, rest_size: int = REST_SAMPLE_SIZE) -> None:
+    def __init__(self, distance_calculator: DistanceCalculator | None = None, seed: str | None = None, log: PrintDesignProgress = DEV_NULL, good_size: int = GOOD_SAMPLE_SIZE, rest_size: int = REST_SAMPLE_SIZE) -> None:
         super().__init__(distance_calculator, seed, log)
         self.good_sample_size = good_size
         self.rest_sample_size = rest_size
-    def next_round_seqs(self) -> Series:
+    def next_round_seqs(self) -> list[str]:
         query_dist: float = self.distance_calculator.sqr_distance(self.query_feats, self.target_feats)
         one_point_moves: list[tuple[int, str]] = list(product(range(len(self.query_seq)), AA_STRING))
         random.shuffle(one_point_moves)
@@ -133,4 +115,4 @@ class RandMultiChange(IterativeGuessModel):
             res: str = data[0]
             result_plus_move: list[str] = list(map(lambda x: x[:i] + res + x[i+1:], result))
             result += result_plus_move
-        return Series(result)
+        return result
