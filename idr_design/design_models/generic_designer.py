@@ -44,7 +44,11 @@ class SequenceDesigner(ABC):
             t: float = time()
             designed_seq: str = self.search_similar(seq, target)
             t = time() - t
-            output = concat((output, DataFrame({"time": [t], "seq": [designed_seq]})))
+            next_row = DataFrame({"time": [t], "seq": [designed_seq]})
+            if len(output) == 0:
+                output = next_row
+            else:
+                output = concat((output, next_row))
         self.log.exit_design_similar(job_name=self.job_name, query_seqs=queries, final_seqs=output["seq"], times=output["time"])
         self.log = orig_log
         return output["seq"]
