@@ -1,11 +1,9 @@
 from idr_design.design_models.iter_guess_model import BruteForce
 from idr_design.design_models.iter_guess_model import RandMultiChange
 from idr_design.design_models.iter_guess_model import IterativeGuessModel
-from idr_design.design_models.progress_logger import DisplayToStdout, LogToFile
+from idr_design.design_models.progress_logger import DisplayToStdout, LogToFile, LogToCSV
 from itertools import product
 import pytest, os
-from time import time
-from math import sqrt
 
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
 SEED = "2022"
@@ -31,10 +29,9 @@ class TestIterativeGuessModels:
             [sample_multipt, brute_force]
         ))
     def test_display(self, i: int, model: IterativeGuessModel):
-        log = DisplayToStdout()
-        model.log = log
-        seq = self.small_example[i]
-        model.design_similar(self.n, seq, job_name=str(i), verbose=True) 
+        model.log = DisplayToStdout()
+        seq = self.small_example[i][0]
+        model.design_similar(self.small_example[i][1], seq, job_name=str(i), verbose=True) 
     fasta_ids: list[str] = []
     fasta_lookup_sequences: dict[str, str]
     with open(f"{path_to_this_file}/../disprot_idrs_clean.fasta", "r") as fastaf:
@@ -42,7 +39,7 @@ class TestIterativeGuessModels:
     terrible_fasta_ids, sequences = lines[::2], lines[1::2]
     fasta_lookup_sequences = dict(zip(terrible_fasta_ids, sequences))
     # Prevent code from compiling forever, can't include all fasta ids
-    skip_after: int = 50
+    skip_after: int = 10
     n = 30
     admissible_length = range(15,40)
     for id, seq in fasta_lookup_sequences.items():
@@ -57,8 +54,8 @@ class TestIterativeGuessModels:
             raise interrupt
         except:
             continue
-    # I hate this too but there are duplicates and pytest doesn't like user defined __init__'s
-    @pytest.mark.skip
+    # I hate this too but pytest doesn't like user defined __init__'s
+    # @pytest.mark.skip
     @pytest.mark.parametrize(("fasta_id", "model"), product(
             # [fasta_ids[3]],
             fasta_ids,
@@ -67,7 +64,7 @@ class TestIterativeGuessModels:
             # [sample_multipt]
             # [brute_force]
         ))
-    def test_print(self, fasta_id: str, model: IterativeGuessModel):
+    def test_to_file(self, fasta_id: str, model: IterativeGuessModel):
         if isinstance(model, RandMultiChange):
             name: str = "rand_mch_output.txt"
         elif isinstance(model, BruteForce):
@@ -76,13 +73,32 @@ class TestIterativeGuessModels:
             raise ValueError(model)
         path: str = f"{path_to_this_file}/{name}"
         if fasta_id == self.fasta_ids[0]:
-            with open(path, "w") as _:
+            with open(path, "w"):
                 pass
         with open(path, "a") as f:
-            log = LogToFile(file=f)
-            model.log = log
+            model.log = LogToFile(file=f)
             seq = self.fasta_lookup_sequences[fasta_id]
             model.design_similar(self.n, seq, job_name=fasta_id[1:], verbose=True)
+    # @pytest.mark.skip
+    @pytest.mark.parametrize(("fasta_id", "model"), product(
+            # [fasta_ids[3]],
+            fasta_ids,
+            # [sample_multipt, brute_force]
+            [brute_force, sample_multipt]
+            # [sample_multipt]
+            # [brute_force]
+        ))
+    def test_to_csv(self, fasta_id: str, model: IterativeGuessModel):
+        if isinstance(model, RandMultiChange):
+            name: str = "rand_mch_output"
+        elif isinstance(model, BruteForce):
+            name: str = "brute_force_output"
+        else:
+            raise ValueError(model)
+        path: str = f"{path_to_this_file}/{name}"
+        model.log = LogToCSV(path=path)
+        seq = self.fasta_lookup_sequences[fasta_id]
+        model.design_similar(self.n, seq, job_name=fasta_id[1:], verbose=True)
     
             
     

@@ -1,7 +1,6 @@
 from typing import TextIO, Any, cast
 from abc import ABC, abstractmethod
-from pandas import DataFrame, Series
-from os.path import isfile
+from pandas import DataFrame, Series, concat
 from os import get_terminal_size
 
 class PrintDesignProgress(ABC):
@@ -137,3 +136,55 @@ class DisplayToStdout(PrintDesignProgress):
         print(f"Distance, time:")
         print(f"{final_distance}, {time}")
     
+SUMMARY_COLUMNS: list[str] = [
+    "num",
+    "time",
+    "target",
+    "query",
+    "design",
+    "design_dist"
+]
+ONE_DES_COLUMNS: list[str] = [
+    "iteration",
+    "seq",
+    "dist",
+    "time"
+]
+class LogToCSV(PrintDesignProgress):
+    dir: str
+    tgt: str
+    qry: str
+    summary_df: DataFrame
+    one_design_df: DataFrame
+    def __init__(self, path: str) -> None:
+        super().__init__()
+        self.dir = path
+    def enter_design_similar(self, job_name: str, tgt_seq: str, num_designs: int, algorithm: str) -> None:
+        self.summary_df = DataFrame(columns=SUMMARY_COLUMNS)
+        self.tgt = tgt_seq
+    def exit_design_similar(self, job_name: str, query_seqs: Series, final_seqs: Series, times: Series) -> None:
+        path = f"{self.dir}/{job_name}.csv"
+        self.summary_df = self.summary_df.set_index("num")
+        self.summary_df.to_csv(path)
+    def report_round(self, guess_seq: str, iteration: int, distance: float, time: float) -> None:
+        self.one_design_df = concat((self.one_design_df, DataFrame({
+            "iteration": [iteration],
+            "seq": [guess_seq],
+            "dist": [distance],
+            "time": [time]
+        })))
+    def enter_search_similar(self, job_name: str, job_num: int, query_seq: str, distance: float) -> None:
+        self.one_design_df = DataFrame(columns=ONE_DES_COLUMNS)
+        self.qry = query_seq
+    def exit_search_similar(self, job_name: str, job_num: int, final_seq: str, final_distance: float, time: float) -> None:
+        path = f"{self.dir}/{job_name}_{job_num}.csv"
+        self.one_design_df = self.one_design_df.set_index("iteration")
+        self.one_design_df.to_csv(path)
+        self.summary_df = concat((self.summary_df, DataFrame({
+            "num": [job_num],
+            "time": [time],
+            "target": [self.tgt],
+            "query": [self.qry],
+            "design": [final_seq],
+            "design_dist": [final_distance]
+        })))
