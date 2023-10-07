@@ -51,7 +51,7 @@ class TestDistCalc:
             Series(target, index=self.feature_calculator.supported_features)
         )
         # if you have the typing extension on, please ignore this error
-        for calc_dist, feats in zip(calc, no_dups_data.iloc):
+        for calc_dist, feats in zip(calc, no_dups_data.iloc): 
             exp_dist: float = self.distance_calculator.sqr_distance(feats, target)
             assert calc_dist == exp_dist
     @pytest.mark.slow

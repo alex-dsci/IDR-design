@@ -1,4 +1,4 @@
-from math import sqrt
+from numpy import sqrt, power
 from scipy.stats import nbinom
 
 AA_CHARGE = {
@@ -30,14 +30,15 @@ def _actual_neighbours(seq: str, blob: int) -> float:
 def _exp_neighbours(count_neg: int, count_pos: int, length: int, blob: int) -> float:
     count_charged: int = count_neg + count_pos
     proportion_charged: float = count_charged / length
-    prob_next_charge_in_blob: float = float(nbinom.cdf(k=blob-1,n=1,p=proportion_charged)) 
+    assert 0 < proportion_charged < 1
+    prob_next_charge_in_blob: float = proportion_charged * sum(power(1-proportion_charged, range(blob)))
     prob_charges_are_diff: float = 2 * count_neg * count_pos / (count_charged ** 2)
     prob_final: float = prob_next_charge_in_blob * (1 - prob_charges_are_diff)
     return prob_final * count_charged
 def _sd_neighbours(count_neg: int, count_pos: int, length: int, blob: int) -> float:
     count_charged: int = count_neg + count_pos
     proportion_charged: float = count_charged / length
-    prob_next_charge_in_blob: float = float(nbinom.cdf(k=blob-1,n=1,p=proportion_charged)) 
+    prob_next_charge_in_blob: float = proportion_charged * sum(power(1-proportion_charged, range(blob)))
     prob_charges_are_diff: float = 2 * count_neg * count_pos / (count_charged ** 2)
     prob_final: float = prob_next_charge_in_blob * (1 - prob_charges_are_diff)
     return sqrt(prob_final * (1 - prob_final) * count_charged)

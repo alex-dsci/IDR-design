@@ -30,8 +30,6 @@ class TestFeatCalc:
     @pytest.mark.slow
     @pytest.mark.parametrize(("fasta_id"), fasta_ids)
     def test_individual_calcs(self, fasta_id: str):
-        # old code did it in units of log base 20, which gets normalized out later
-        self.fasta_lookup_results[fasta_id]["complexity"] *= log(20)
         seq: str = self.fasta_lookup_sequences[fasta_id] 
         for feature in self.features:
             expected: float = self.fasta_lookup_results[fasta_id][feature]
@@ -43,19 +41,26 @@ class TestFeatCalc:
                 case ">P89113", "my_kappa":
                     with pytest.raises(ValueError):
                         self.feature_calculator[feature](seq)
+                case _, "complexity":
+                    # old code did it in units of log base 20, which gets normalized out later
+                    expected *= log(20)
+                    assert abs(self.feature_calculator[feature](seq) - expected) < FLOAT_COMPARISON_TOLERANCE
                 case _:
                     assert abs(self.feature_calculator[feature](seq) - expected) < FLOAT_COMPARISON_TOLERANCE
     # Prevent code from compiling forever
     skip_after: int = 1000
+    # @pytest.mark.skip
     @pytest.mark.parametrize(("fasta_id"), nice_fasta_ids[:skip_after])
     def test_run_feats(self, fasta_id: str):
-        # old code did it in units of log base 20, which gets normalized out later
-        self.fasta_lookup_results[fasta_id]["complexity"] *= log(20)
         seq: str = self.fasta_lookup_sequences[fasta_id]
         calc: list[float] = self.feature_calculator.run_feats(seq)
         for i, feature in enumerate(self.feature_calculator.supported_features):
             expected: float = self.fasta_lookup_results[fasta_id][feature]
+            # old code did it in units of log base 20, which gets normalized out later
+            if feature == "complexity":
+                expected *= log(20)
             assert abs(calc[i] - expected) < FLOAT_COMPARISON_TOLERANCE
+    
     @pytest.mark.parametrize(("fasta_id"), fasta_ids[:skip_after])
     def test_run_feats_skip_failures(self, fasta_id: str):
         seq: str = self.fasta_lookup_sequences[fasta_id]
@@ -71,6 +76,11 @@ class TestFeatCalc:
                 # test kappa - throws error
                 case ">P89113", "my_kappa":
                     assert result is None
+                case _, "complexity":
+                    assert result is not None
+                    # old code did it in units of log base 20, which gets normalized out later
+                    expected *= log(20)
+                    assert abs(result - expected) < FLOAT_COMPARISON_TOLERANCE
                 case _:
                     assert result is not None
                     assert abs(result - expected) < FLOAT_COMPARISON_TOLERANCE
@@ -89,6 +99,11 @@ class TestFeatCalc:
                 # test kappa - throws error
                 case ">P89113", "my_kappa":
                     assert result is None
+                case _, "complexity":
+                    assert result is not None
+                    # old code did it in units of log base 20, which gets normalized out later
+                    expected *= log(20)
+                    assert abs(result - expected) < FLOAT_COMPARISON_TOLERANCE
                 case _:
                     assert result is not None
                     assert abs(result - expected) < FLOAT_COMPARISON_TOLERANCE
