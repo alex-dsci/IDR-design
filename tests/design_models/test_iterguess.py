@@ -1,7 +1,7 @@
 from idr_design.design_models.iter_guess_model import BruteForce
 from idr_design.design_models.iter_guess_model import RandMultiChange
 from idr_design.design_models.iter_guess_model import IterativeGuessModel
-from idr_design.design_models.logger import ProgressLogger
+from idr_design.design_models.progress_logger import DisplayToStdout, LogToFile
 from itertools import product
 import pytest, os
 from time import time
@@ -25,25 +25,16 @@ class TestIterativeGuessModels:
         ("MREIVHIQGGQCGNQIGAKFWEVVSDEHGIDPTGTYHGDSDLQLERINVYFNEATGGRYVPRAILMDLEPGTMDSVRSGPYGQIFRPDNFVFGQTGAGNNWAKGHYTEGAELIDSVLDVVRKEAESCDCLQGFQVCHSLGGGTGSGMGTLLISKIREEYPDRMMLTFSVVPSPKVSDTVVEPYNATLSVHQLVENADECMVLDNEALYDICFRTLKLTTPTFGDLNHLISAVMSGITCCLRFPGQLNADLRKLAVNLIPFPRLHFFMVGFTPLTSRGSQQYRALTVPELTQQMWDAKNMMCAADPRHGRYLTASALFRGRMSTKEVDEQMLNVQNKNSSYFVEWIPNNVKSSVCDIPPKGLKMSATFIGNSTAIQEMFKRVSEQFTAMFRRKAFLHWYTGEGMDEMEFTEAESNMNDLVSEYQQYQDASAEEEGEFEGEEEEA", 1)
     ]
     # Usually want to test print. Comment this out if you want to see a small example.
-    # @pytest.mark.skip
+    @pytest.mark.skip
     @pytest.mark.parametrize(("i", "model"), product(
             range(len(small_example)),
             [sample_multipt, brute_force]
         ))
     def test_display(self, i: int, model: IterativeGuessModel):
-        print()
-        print(model)
-        seq, n = self.small_example[i]
-        print(seq)
-        t = time()
-        results = model.design_similar(n, seq, verbose=True)
-        t = time() - t
-        for result in results:
-            result_feats = self.sfc.run_feats(result)
-            target_feats = self.sfc.run_feats(seq)
-            dist = sqrt(self.dc.sqr_distance(result_feats, target_feats))
-            print(result, dist)
-        print("Average time:", t / n)
+        log = DisplayToStdout()
+        model.log = log
+        seq = self.small_example[i]
+        model.design_similar(self.n, seq, job_name=str(i), verbose=True) 
     fasta_ids: list[str] = []
     fasta_lookup_sequences: dict[str, str]
     with open(f"{path_to_this_file}/../disprot_idrs_clean.fasta", "r") as fastaf:
@@ -67,51 +58,32 @@ class TestIterativeGuessModels:
         except:
             continue
     # I hate this too but there are duplicates and pytest doesn't like user defined __init__'s
-
-    # clear file
-    outfiles = ["brute_force_output.txt", "rand_mch_output.txt"]
-    for outfile in outfiles:
-        with open(f"{path_to_this_file}/{outfile}", "w"):
-            pass
     @pytest.mark.skip
     @pytest.mark.parametrize(("fasta_id", "model"), product(
             # [fasta_ids[3]],
             fasta_ids,
-            [sample_multipt, brute_force]
-            # [brute_force, sample_multipt]
+            # [sample_multipt, brute_force]
+            [brute_force, sample_multipt]
             # [sample_multipt]
             # [brute_force]
         ))
     def test_print(self, fasta_id: str, model: IterativeGuessModel):
-        if isinstance(model, BruteForce):
-            outfile = self.outfiles[0]
-        elif isinstance(model, RandMultiChange):
-            outfile = self.outfiles[1]
+        if isinstance(model, RandMultiChange):
+            name: str = "rand_mch_output.txt"
+        elif isinstance(model, BruteForce):
+            name: str = "brute_force_output.txt"
         else:
             raise ValueError(model)
-        with open(f"{path_to_this_file}/{outfile}", "a") as f:
-            log = ProgressLogger(
-                file=f,
-                display_mode=False,
-                col_names= [f"{fasta_id}|PROGRESS", "dist_to_target", "time"] 
-            )
+        path: str = f"{path_to_this_file}/{name}"
+        if fasta_id == self.fasta_ids[0]:
+            with open(path, "w") as _:
+                pass
+        with open(path, "a") as f:
+            log = LogToFile(file=f)
             model.log = log
-            model.logged_time = "total"
-            # print(model, file=f)
             seq = self.fasta_lookup_sequences[fasta_id]
-            t = time()
-            results = model.design_similar(self.n, seq, verbose=True)
-            t = time() - t
-            print(f"{fasta_id}|RESULT", file=f)
-            for result in results:
-                result_feats = self.sfc.run_feats(result)
-                target_feats = self.sfc.run_feats(seq)
-                dist = sqrt(self.dc.sqr_distance(result_feats, target_feats))
-                print(result, file=f)
-                print(f"Dist: {dist}", file=f)
-            print("Average time:", t / self.n, file=f)
-            
-            
+            model.design_similar(self.n, seq, job_name=fasta_id[1:], verbose=True)
+    
             
     
     
