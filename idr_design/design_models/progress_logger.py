@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from pandas import DataFrame, Series, concat
 from shutil import get_terminal_size
 from IPython.core.getipython import get_ipython
+from sys import stdout
 
 class PrintDesignProgress(ABC):
     @abstractmethod
@@ -89,7 +90,8 @@ def _in_columns(data: list[Any], col_lens: list[int]) -> str:
 
 BUFFER = 20
 FLOAT_LEN = 20
-NOTEBOOK_LEN = 88
+INT_LEN = 10 
+NOTEBOOK_LEN = 120
 def _max_line_length() -> int:
     try:
         shell = get_ipython().__class__.__name__
@@ -122,11 +124,12 @@ class DisplayToStdout(PrintDesignProgress):
         for i, data in enumerate(zip(ts, qseqs, fseqs)):
             print(_in_columns([f"{job_name} {i}", data[0], data[1], data[2]], column_lengths))
     def report_round(self, guess_seq: str, iteration: int, distance: float, time: float) -> None:
-        column_lengths: list[int] = [FLOAT_LEN, FLOAT_LEN, FLOAT_LEN]
+        column_lengths: list[int] = [FLOAT_LEN, INT_LEN, FLOAT_LEN]
         remaining_length = _max_line_length() - sum(column_lengths) - BUFFER
         column_lengths = [remaining_length] + column_lengths
         if self.same_line:
             print("\r" + _in_columns([guess_seq, distance, iteration, time], column_lengths), end="")
+            stdout.flush()
         else:
             print(_in_columns([guess_seq, distance, iteration, time], column_lengths))
     def enter_search_similar(self, job_name: str, job_num: int, query_seq: str, distance: float) -> None:
@@ -137,7 +140,7 @@ class DisplayToStdout(PrintDesignProgress):
         print(f"Distance:")
         print(f"{distance}")
         print(f"#" * len(str(distance)))
-        column_lengths: list[int] = [FLOAT_LEN, FLOAT_LEN, FLOAT_LEN]
+        column_lengths: list[int] = [FLOAT_LEN, INT_LEN, FLOAT_LEN]
         remaining_length = _max_line_length() - sum(column_lengths) - BUFFER
         column_lengths = [remaining_length] + column_lengths
         print(_in_columns(["Sequence", "distance", "iteration", "time"], column_lengths))
