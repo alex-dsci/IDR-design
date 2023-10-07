@@ -8,7 +8,6 @@ import pytest, os
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
 SEED = "2022"
 
-@pytest.mark.slow
 class TestIterativeGuessModels:
     brute_force: BruteForce = BruteForce(seed=SEED)
     sample_multipt: RandMultiChange = RandMultiChange(seed=SEED)
@@ -22,13 +21,13 @@ class TestIterativeGuessModels:
         # 8GLV (huge sequence)
         ("MREIVHIQGGQCGNQIGAKFWEVVSDEHGIDPTGTYHGDSDLQLERINVYFNEATGGRYVPRAILMDLEPGTMDSVRSGPYGQIFRPDNFVFGQTGAGNNWAKGHYTEGAELIDSVLDVVRKEAESCDCLQGFQVCHSLGGGTGSGMGTLLISKIREEYPDRMMLTFSVVPSPKVSDTVVEPYNATLSVHQLVENADECMVLDNEALYDICFRTLKLTTPTFGDLNHLISAVMSGITCCLRFPGQLNADLRKLAVNLIPFPRLHFFMVGFTPLTSRGSQQYRALTVPELTQQMWDAKNMMCAADPRHGRYLTASALFRGRMSTKEVDEQMLNVQNKNSSYFVEWIPNNVKSSVCDIPPKGLKMSATFIGNSTAIQEMFKRVSEQFTAMFRRKAFLHWYTGEGMDEMEFTEAESNMNDLVSEYQQYQDASAEEEGEFEGEEEEA", 1)
     ]
-    # Usually want to test print. Comment this out if you want to see a small example.
-    @pytest.mark.skip
+    @pytest.mark.slow
     @pytest.mark.parametrize(("i", "model"), product(
             range(len(small_example)),
             [sample_multipt, brute_force]
         ))
     def test_display(self, i: int, model: IterativeGuessModel):
+        print()
         model.log = DisplayToStdout()
         seq = self.small_example[i][0]
         model.design_similar(self.small_example[i][1], seq, job_name=str(i), verbose=True) 
@@ -55,7 +54,7 @@ class TestIterativeGuessModels:
         except:
             continue
     # I hate this too but pytest doesn't like user defined __init__'s
-    # @pytest.mark.skip
+    @pytest.mark.overwrites
     @pytest.mark.parametrize(("fasta_id", "model"), product(
             # [fasta_ids[3]],
             fasta_ids,
@@ -79,7 +78,7 @@ class TestIterativeGuessModels:
             model.log = LogToFile(file=f)
             seq = self.fasta_lookup_sequences[fasta_id]
             model.design_similar(self.n, seq, job_name=fasta_id[1:], verbose=True)
-    # @pytest.mark.skip
+    @pytest.mark.overwrites
     @pytest.mark.parametrize(("fasta_id", "model"), product(
             # [fasta_ids[3]],
             fasta_ids,
