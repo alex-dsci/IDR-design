@@ -110,7 +110,7 @@ class DisplayToStdout(PrintDesignProgress):
         for i, data in enumerate(zip(ts, qseqs, fseqs)):
             print(_in_columns([f"{job_name} {i}", data[0], data[1], data[2]], column_lengths))
     def report_round(self, guess_seq: str, iteration: int, distance: float, time: float) -> None:
-        column_lengths: list[int] = [20, FLOAT_LEN, FLOAT_LEN]
+        column_lengths: list[int] = [FLOAT_LEN, FLOAT_LEN, FLOAT_LEN]
         remaining_length = get_terminal_size().columns - sum(column_lengths) - BUFFER
         column_lengths = [remaining_length] + column_lengths
         if self.same_line:
@@ -125,7 +125,7 @@ class DisplayToStdout(PrintDesignProgress):
         print(f"Distance:")
         print(f"{distance}")
         print(f"#" * len(str(distance)))
-        column_lengths: list[int] = [20, FLOAT_LEN, FLOAT_LEN]
+        column_lengths: list[int] = [FLOAT_LEN, FLOAT_LEN, FLOAT_LEN]
         remaining_length = get_terminal_size().columns - sum(column_lengths) - BUFFER
         column_lengths = [remaining_length] + column_lengths
         print(_in_columns(["Sequence", "distance", "iteration", "time"], column_lengths))
