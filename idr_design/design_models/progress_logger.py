@@ -2,6 +2,7 @@ from typing import TextIO, Any, cast
 from abc import ABC, abstractmethod
 from pandas import DataFrame, Series, concat
 from shutil import get_terminal_size
+from IPython.core.getipython import get_ipython
 
 class PrintDesignProgress(ABC):
     @abstractmethod
@@ -88,6 +89,18 @@ def _in_columns(data: list[Any], col_lens: list[int]) -> str:
 
 BUFFER = 20
 FLOAT_LEN = 20
+NOTEBOOK_LEN = 88
+def _max_line_length() -> int:
+    try:
+        shell = get_ipython().__class__.__name__
+        if shell == 'ZMQInteractiveShell':
+            return NOTEBOOK_LEN   # Jupyter notebook or qtconsole
+        elif shell == 'TerminalInteractiveShell':
+            return get_terminal_size().columns  # Terminal running IPython
+        else:
+            raise ValueError(shell)  # Other type (?)
+    except NameError:
+        return get_terminal_size().columns      # Probably standard Python interpreter
 class DisplayToStdout(PrintDesignProgress):
     same_line: bool
     def __init__(self, same_line: bool = True) -> None:
@@ -103,14 +116,14 @@ class DisplayToStdout(PrintDesignProgress):
         ts = cast("Series[float]", times)
         print(f"Finished {job_name} averaging {sum(ts) / len(qseqs)} seconds.")
         column_lengths: list[int] = [len(job_name) + len(str(len(qseqs))) + 1, FLOAT_LEN]
-        remaining_length = get_terminal_size().columns - sum(column_lengths) - BUFFER
+        remaining_length = _max_line_length() - sum(column_lengths) - BUFFER
         column_lengths = column_lengths + [int(remaining_length/2), int(remaining_length/2)]
         print(_in_columns(["Name", "time", "query sequence", "designed sequence"], column_lengths))
         for i, data in enumerate(zip(ts, qseqs, fseqs)):
             print(_in_columns([f"{job_name} {i}", data[0], data[1], data[2]], column_lengths))
     def report_round(self, guess_seq: str, iteration: int, distance: float, time: float) -> None:
         column_lengths: list[int] = [FLOAT_LEN, FLOAT_LEN, FLOAT_LEN]
-        remaining_length = get_terminal_size().columns - sum(column_lengths) - BUFFER
+        remaining_length = _max_line_length() - sum(column_lengths) - BUFFER
         column_lengths = [remaining_length] + column_lengths
         if self.same_line:
             print("\r" + _in_columns([guess_seq, distance, iteration, time], column_lengths), end="")
@@ -119,19 +132,19 @@ class DisplayToStdout(PrintDesignProgress):
     def enter_search_similar(self, job_name: str, job_num: int, query_seq: str, distance: float) -> None:
         print(f"Starting {job_name} (Query #{job_num}).")
         print(f"Query sequence:")
-        remaining_length = get_terminal_size().columns - BUFFER
+        remaining_length = _max_line_length() - BUFFER
         print(_fixed_len_str(query_seq, remaining_length))
         print(f"Distance:")
         print(f"{distance}")
         print(f"#" * len(str(distance)))
         column_lengths: list[int] = [FLOAT_LEN, FLOAT_LEN, FLOAT_LEN]
-        remaining_length = get_terminal_size().columns - sum(column_lengths) - BUFFER
+        remaining_length = _max_line_length() - sum(column_lengths) - BUFFER
         column_lengths = [remaining_length] + column_lengths
         print(_in_columns(["Sequence", "distance", "iteration", "time"], column_lengths))
     def exit_search_similar(self, job_name: str, job_num: int, final_seq: str, final_distance: float, time: float) -> None:
         print(f"\nFinishing {job_name} (Query #{job_num})") 
         print(f"Final sequence:")
-        remaining_length = get_terminal_size().columns - BUFFER
+        remaining_length = _max_line_length() - BUFFER
         print(_fixed_len_str(final_seq, remaining_length))
         print(f"Distance, time:")
         print(f"{final_distance}, {time}")
