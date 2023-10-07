@@ -38,6 +38,7 @@ def _exp_neighbours(count_neg: int, count_pos: int, length: int, blob: int) -> f
 def _sd_neighbours(count_neg: int, count_pos: int, length: int, blob: int) -> float:
     count_charged: int = count_neg + count_pos
     proportion_charged: float = count_charged / length
+    assert 0 < proportion_charged < 1
     prob_next_charge_in_blob: float = proportion_charged * sum(power(1-proportion_charged, range(blob)))
     prob_charges_are_diff: float = 2 * count_neg * count_pos / (count_charged ** 2)
     prob_final: float = prob_next_charge_in_blob * (1 - prob_charges_are_diff)

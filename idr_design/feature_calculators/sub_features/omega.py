@@ -29,10 +29,12 @@ def _actual_neighbours(seq: str, blob: int) -> float:
 # the next blob residues is a negative binomial with parameter => pro/charge proportion
 def _exp_neighbours(count_procharge: int, length: int, blob: int) -> float:
     proportion_procharge: float = count_procharge / length
+    assert 0 < proportion_procharge < 1
     prob_next_proch_in_blob: float = proportion_procharge * sum(power(1-proportion_procharge, range(blob)))
     return prob_next_proch_in_blob * count_procharge
 def _sd_neighbours(count_procharge: int, length: int, blob: int) -> float:
     proportion_procharge: float = count_procharge / length
+    assert 0 < proportion_procharge < 1
     prob_next_proch_in_blob: float = proportion_procharge * sum(power(1-proportion_procharge, range(blob)))
     return sqrt(prob_next_proch_in_blob * (1 - prob_next_proch_in_blob) * count_procharge)
 
