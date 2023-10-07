@@ -1,7 +1,7 @@
 from typing import TextIO, Any, cast
 from abc import ABC, abstractmethod
 from pandas import DataFrame, Series, concat
-from os import get_terminal_size
+from shutil import get_terminal_size
 
 class PrintDesignProgress(ABC):
     @abstractmethod
