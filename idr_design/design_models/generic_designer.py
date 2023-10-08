@@ -1,7 +1,7 @@
 import random
 from idr_design.constants import AA_STRING
 from idr_design.feature_calculators.main import DistanceCalculator as DistCalc, SequenceFeatureCalculator as FeatCalc
-from idr_design.design_models.progress_logger import PrintDesignProgress, DEV_NULL
+from idr_design.design_models.progress_logger import PrintDesignProgress, DisplayToStdout
 from abc import abstractmethod, ABC
 from pandas import Series, concat, DataFrame
 from time import time
@@ -17,20 +17,21 @@ class SequenceDesigner(ABC):
     log: PrintDesignProgress
     job_name: str
     job_num: int
-    def __init__(self, distance_calculator: DistCalc | None = None, seed: str | None = None, log: PrintDesignProgress = DEV_NULL) -> None:
+    def __init__(self, distance_calculator: DistCalc | None = None, seed: str | None = None, log: PrintDesignProgress | None = None) -> None:
         self.feature_calculator = FeatCalc()
         if distance_calculator is not None:
             self.distance_calculator = distance_calculator
         else:
             self.distance_calculator = DistCalc(self.feature_calculator)
         self.seed = seed
-        self.log = log
+        if log is not None:
+            self.log = log
+        else:
+            self.log = DisplayToStdout()
     def design_similar(self, query: str | int, target: str, verbose: bool = False, job_name: str = "Design") -> Series: # type Series[str]
         assert job_name.strip() != ""
         self.job_name = job_name
-        orig_log: PrintDesignProgress = self.log
-        if not verbose:
-            self.log = DEV_NULL              
+        self.log.bypass = not verbose            
         qs: Series
         if isinstance(query, int):
             qs = self._get_random_seqs(target, query)
@@ -50,7 +51,6 @@ class SequenceDesigner(ABC):
             else:
                 output = concat((output, next_row))
         self.log.exit_design_similar(job_name=self.job_name, query_seqs=queries, final_seqs=output["seq"], times=output["time"])
-        self.log = orig_log
         return output["seq"]
     def _get_random_seqs(self, target: str, n: int) -> Series: # type Series[str]
         if self.seed is not None:

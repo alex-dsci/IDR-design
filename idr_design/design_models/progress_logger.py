@@ -6,38 +6,30 @@ from IPython.core.getipython import get_ipython
 from sys import stdout
 
 class PrintDesignProgress(ABC):
+    bypass: bool
     @abstractmethod
     def enter_design_similar(self, job_name: str, tgt_seq: str, num_designs: int, algorithm: str) -> None:
-        pass
+        if self.bypass:
+            return
     @abstractmethod
     def exit_design_similar(self, job_name: str, query_seqs: Series, final_seqs: Series, times: Series) -> None:
+        if self.bypass:
+            return
         qseqs = cast("Series[str]", query_seqs)
         fseqs = cast("Series[str]", final_seqs)
         ts = cast("Series[float]", times)
-        pass
     @abstractmethod
     def report_round(self, guess_seq: str, iteration: int, distance: float, time: float) -> None:
-        pass
+        if self.bypass:
+            return
     @abstractmethod
     def enter_search_similar(self, job_name: str, job_num: int, query_seq: str, distance: float) -> None:
-        pass
+        if self.bypass:
+            return
     @abstractmethod
     def exit_search_similar(self, job_name: str, job_num: int, final_seq: str, final_distance: float, time: float) -> None:
-        pass
-
-class DevNull(PrintDesignProgress):
-    def enter_design_similar(self, job_name: str, tgt_seq: str, num_designs: int, algorithm: str) -> None:
-        pass
-    def exit_design_similar(self, job_name: str, query_seqs: Series, final_seqs: Series, times: Series) -> None:
-        pass
-    def report_round(self, guess_seq: str, iteration: int, distance: float, time: float) -> None:
-        pass
-    def enter_search_similar(self, job_name: str, job_num: int, query_seq: str, distance: float) -> None:
-        pass
-    def exit_search_similar(self, job_name: str, job_num: int, final_seq: str, final_distance: float, time: float) -> None:
-        pass 
-
-DEV_NULL = DevNull()
+        if self.bypass:
+            return
 
 class LogToFile(PrintDesignProgress):
     file: TextIO
@@ -45,12 +37,16 @@ class LogToFile(PrintDesignProgress):
         super().__init__()
         self.file = file
     def enter_design_similar(self, job_name: str, tgt_seq: str, num_designs: int, algorithm: str) -> None:
+        if self.bypass:
+            return
         print(f"<SEARCHES_START>", file=self.file)
         print(f"{job_name}", file=self.file)
         print(f"Algorithm, number of designs: {algorithm}, {num_designs}", file=self.file)
         print(f"Target sequence:", file=self.file)
         print(f"{tgt_seq}", file=self.file)
     def exit_design_similar(self, job_name: str, query_seqs: Series, final_seqs: Series, times: Series) -> None:
+        if self.bypass:
+            return
         qseqs = cast("Series[str]", query_seqs)
         fseqs = cast("Series[str]", final_seqs)
         ts = cast("Series[float]", times)
@@ -61,8 +57,12 @@ class LogToFile(PrintDesignProgress):
         for i, data in enumerate(zip(ts, qseqs, fseqs)):
             print(f"{job_name} {i}, {data[0]}, {data[1]}, {data[2]}", file=self.file)
     def report_round(self, guess_seq: str, iteration: int, distance: float, time: float) -> None:
+        if self.bypass:
+            return
         print(f"{iteration}, {guess_seq}, {distance}, {time}", file=self.file)
     def enter_search_similar(self, job_name: str, job_num: int, query_seq: str, distance: float) -> None:
+        if self.bypass:
+            return
         print(f"<SEARCH_START>", file=self.file)
         print(f"{job_name} {job_num}", file=self.file)
         print(f"Query sequence:", file=self.file)
@@ -71,6 +71,8 @@ class LogToFile(PrintDesignProgress):
         print(f"#" * len(f"Distance: {distance}"), file=self.file)
         print(f"Iteration, sequence, distance, time", file=self.file)
     def exit_search_similar(self, job_name: str, job_num: int, final_seq: str, final_distance: float, time: float) -> None:
+        if self.bypass:
+            return
         print(f"<SEARCH_END>", file=self.file)
         print(f"{job_name} {job_num}", file=self.file)
         print(f"Final sequence:", file=self.file)
@@ -93,26 +95,25 @@ FLOAT_LEN = 20
 INT_LEN = 10 
 NOTEBOOK_LEN = 120
 def _max_line_length() -> int:
-    try:
-        shell = get_ipython().__class__.__name__
-        if shell == 'ZMQInteractiveShell':
-            return NOTEBOOK_LEN   # Jupyter notebook or qtconsole
-        elif shell == 'TerminalInteractiveShell':
-            return get_terminal_size().columns  # Terminal running IPython
-        else:
-            raise ValueError(shell)  # Other type (?)
-    except NameError:
-        return get_terminal_size().columns      # Probably standard Python interpreter
+    shell = get_ipython().__class__.__name__
+    if shell == 'ZMQInteractiveShell':
+        return NOTEBOOK_LEN   # Jupyter notebook or qtconsole
+    else:
+        return get_terminal_size().columns  # Terminal running python
 class DisplayToStdout(PrintDesignProgress):
     same_line: bool
     def __init__(self, same_line: bool = True) -> None:
         super().__init__()
         self.same_line = same_line
     def enter_design_similar(self, job_name: str, tgt_seq: str, num_designs: int, algorithm: str) -> None:
+        if self.bypass:
+            return
         print(f"Starting {job_name} ({num_designs} sequences). Running {algorithm}.")
         print(f"Target sequence:")
         print(f"{tgt_seq}")
     def exit_design_similar(self, job_name: str, query_seqs: Series, final_seqs: Series, times: Series) -> None:
+        if self.bypass:
+            return
         qseqs = cast("Series[str]", query_seqs)
         fseqs = cast("Series[str]", final_seqs)
         ts = cast("Series[float]", times)
@@ -124,6 +125,8 @@ class DisplayToStdout(PrintDesignProgress):
         for i, data in enumerate(zip(ts, qseqs, fseqs)):
             print(_in_columns([f"{job_name} {i}", data[0], data[1], data[2]], column_lengths))
     def report_round(self, guess_seq: str, iteration: int, distance: float, time: float) -> None:
+        if self.bypass:
+            return
         column_lengths: list[int] = [FLOAT_LEN, INT_LEN, FLOAT_LEN]
         remaining_length = _max_line_length() - sum(column_lengths) - BUFFER
         column_lengths = [remaining_length] + column_lengths
@@ -133,6 +136,8 @@ class DisplayToStdout(PrintDesignProgress):
         else:
             print(_in_columns([guess_seq, distance, iteration, time], column_lengths))
     def enter_search_similar(self, job_name: str, job_num: int, query_seq: str, distance: float) -> None:
+        if self.bypass:
+            return
         print(f"Starting {job_name} (Query #{job_num}).")
         print(f"Query sequence:")
         remaining_length = _max_line_length() - BUFFER
@@ -145,6 +150,8 @@ class DisplayToStdout(PrintDesignProgress):
         column_lengths = [remaining_length] + column_lengths
         print(_in_columns(["Sequence", "distance", "iteration", "time"], column_lengths))
     def exit_search_similar(self, job_name: str, job_num: int, final_seq: str, final_distance: float, time: float) -> None:
+        if self.bypass:
+            return
         print(f"\nFinishing {job_name} (Query #{job_num})") 
         print(f"Final sequence:")
         remaining_length = _max_line_length() - BUFFER
@@ -176,13 +183,19 @@ class LogToCSV(PrintDesignProgress):
         super().__init__()
         self.dir = path
     def enter_design_similar(self, job_name: str, tgt_seq: str, num_designs: int, algorithm: str) -> None:
+        if self.bypass:
+            return
         self.summary_df = DataFrame(columns=SUMMARY_COLUMNS)
         self.tgt = tgt_seq
     def exit_design_similar(self, job_name: str, query_seqs: Series, final_seqs: Series, times: Series) -> None:
+        if self.bypass:
+            return
         path = f"{self.dir}/{job_name}.csv"
         self.summary_df = self.summary_df.set_index("num")
         self.summary_df.to_csv(path)
     def report_round(self, guess_seq: str, iteration: int, distance: float, time: float) -> None:
+        if self.bypass:
+            return
         next_row = DataFrame({
             "iteration": [iteration],
             "seq": [guess_seq],
@@ -194,9 +207,13 @@ class LogToCSV(PrintDesignProgress):
         else:     
             self.one_design_df = concat((self.one_design_df, next_row))
     def enter_search_similar(self, job_name: str, job_num: int, query_seq: str, distance: float) -> None:
+        if self.bypass:
+            return
         self.one_design_df = DataFrame(columns=ONE_DES_COLUMNS)
         self.qry = query_seq
     def exit_search_similar(self, job_name: str, job_num: int, final_seq: str, final_distance: float, time: float) -> None:
+        if self.bypass:
+            return
         path = f"{self.dir}/{job_name}_{job_num}.csv"
         self.one_design_df = self.one_design_df.set_index("iteration")
         self.one_design_df.to_csv(path)
