@@ -55,7 +55,7 @@ class SequenceDesigner(ABC):
     def _get_random_seqs(self, target: str, n: int) -> Series: # type Series[str]
         if self.seed is not None:
             random.seed(self.seed + target)
-        output = cast("Series[str]", Series())
+        output = cast("Series[str]", Series(dtype=str))
         for _ in range(n):
             new_seq: str = "".join([random.choice(AA_STRING) for _ in range(len(target))])
             while True:
