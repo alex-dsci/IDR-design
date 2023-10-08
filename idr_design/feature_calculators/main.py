@@ -5,7 +5,7 @@ from idr_design.feature_calculators.sub_features.isoelectric.main import handle_
 from idr_design.feature_calculators.sub_features.single_pass_features import SinglePassCalculator
 from typing import Callable as func, Any
 from pandas import Series, DataFrame, read_csv
-from idr_design.constants import FEATURE_JSON_FILE
+from idr_design.constants import FEATURE_JSON_FILE, AA_STRING
 import os, json, re
 path_to_this_file = os.path.dirname(os.path.realpath(__file__))
 DEFAULT_PROTEOME_PATH: str = f"{path_to_this_file}/input_data/disprot_variance.csv"
@@ -63,6 +63,16 @@ class SequenceFeatureCalculator(dict[str, FeatCalcHandler]):
             values: list[float | None] = self.run_feats_skip_failures(seq)
             grid_feats[seq].update(zip(self.supported_features, values))
         return grid_feats
+    def is_valid(self, seq: str) -> bool:
+        try:
+            assert re.match(f"[{AA_STRING}]*", seq)
+            self.run_feats(seq)
+        except KeyboardInterrupt:
+            raise
+        except:
+            return False
+        else:
+            return True
 
 class DistanceCalculator:
     proteome_variance: Series
