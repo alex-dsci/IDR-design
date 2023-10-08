@@ -93,7 +93,7 @@ def _in_columns(data: list[Any], col_lens: list[int]) -> str:
 BUFFER = 20
 FLOAT_LEN = 20
 INT_LEN = 10 
-NOTEBOOK_LEN = 120
+NOTEBOOK_LEN = 200
 def _max_line_length() -> int:
     shell = get_ipython().__class__.__name__
     if shell == 'ZMQInteractiveShell':
