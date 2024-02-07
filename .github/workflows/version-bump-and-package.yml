@@ -15,6 +15,9 @@ jobs:
 
     steps:
 
+    - name: Debug Token
+      run: echo "Token is\:"" ${{ secrets.AC_GITHUB_TOKEN }}"
+
     - uses: actions/checkout@v2
       with:
         # I setup a new token for my GitHub user and added that token
