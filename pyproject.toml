@@ -1,0 +1,23 @@
+# For running things locally.
+
+# pytest 
+[tool.pytest.ini_options]
+pythonpath = [
+  "src"
+]
+
+[tool.pylint]
+ignored-modules = [
+  "scipy.special"
+]
+max-line-length = 80
+
+# ruff
+[tool.ruff]
+line-length = 80
+
+# flake8
+[tool.flake8]
+ignore = [
+  "E133"
+]
