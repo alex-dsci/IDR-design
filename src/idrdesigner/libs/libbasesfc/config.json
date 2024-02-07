@@ -1,0 +1,309 @@
+{
+    "non_modular": [
+        "scd",
+        "isoelectric_point",
+        "complexity",
+        "fcr",
+        "custom_kappa",
+        "custom_omega"
+    ],
+    "count": {
+        "DEG_APCC_DBOX_1": {
+            "pat": ".R..L..[LIVM]."
+        },
+        "DEG_APCC_KENBOX_2": {
+            "pat": ".KEN."
+        },
+        "DOC_MAPK_MEF2A_6": {
+            "pat": "[LIVMP].[LIV].[LIVMF]"
+        },
+        "DOC_CYCLIN_RxL_1": {
+            "pat": "[^EDWNSG][^D][RK][^D]L"
+        },
+        "DOC_MAPK_FxFP_2": {
+            "pat": "F.[FY]P"
+        },
+        "DOC_PP2A_B56_1": {
+            "pat": "[LM]..[IL].E"
+        },
+        "DOC_PP2B_PxIxI_1": {
+            "pat": ".P[^P]I[^P][IV][^P]"
+        },
+        "LIG_14-3-3_CanoR_1": {
+            "pat": "R..[ST].P"
+        },
+        "LIG_CaM_IQ_9": {
+            "pat": "[ACLIVTM][^P][^P][ILVMFCT]Q[^P][^P][^P][RK][^P][^P][^P][^P][RKQ]"
+        },
+        "LIG_EH_1": {
+            "pat": ".NPF."
+        },
+        "LIG_eIF4E_1": {
+            "pat": "Y....L[VILMF]"
+        },
+        "LIG_EVH1_1": {
+            "pat": "[FYWL]P.PP"
+        },
+        "LIG_NRBOX": {
+            "pat": "[^P]L[^P][^P]LL[^P]"
+        },
+        "LIG_PCNA_PIPBox_1": {
+            "pat": "Q.[^FHWY][ILM][^P][^FHILVWYP][HFM][FMY].."
+        },
+        "LIG_PDZ_Class_1": {
+            "pat": "...[ST].[ACVILF]$"
+        },
+        "LIG_PROFILIN_1": {
+            "pat": "PPP[PA]P[LGP][LGP][^P]"
+        },
+        "LIG_SH2_SRC": {
+            "pat": "Y[QDEVAIL][DENPYHI][IPVGAHS]"
+        },
+        "LIG_SH2_GRB2": {
+            "pat": "Y.N."
+        },
+        "LIG_SH3_1": {
+            "pat": "[RKY]..P..P"
+        },
+        "LIG_SH3_2": {
+            "pat": "P..P.[KR]"
+        },
+        "LIG_WW_1": {
+            "pat": "PP.Y"
+        },
+        "LIG_LIR_Gen_1": {
+            "pat": "[WFY]..[ILV]"
+        },
+        "LIG_AP_GAE_1": {
+            "pat": "[DE][DES][DEGAS]F[SGAD][DEAP][LVIMFD]"
+        },
+        "MOD_CAAXbox": {
+            "pat": "C[^DENQ][LIVMF].$"
+        },
+        "MOD_CDK_SPxK_1": {
+            "pat": "...[ST]P.[KR]"
+        },
+        "MOD_CDK_SPxxK_3": {
+            "pat": "...[ST]P..[RK]"
+        },
+        "MOD_CDC7_priming": {
+            "pat": "S[ST]P"
+        },
+        "MOD_CDK_STP": {
+            "pat": "[ST]P"
+        },
+        "MOD_CKII": {
+            "pat": "[ST][DE].[DE]"
+        },
+        "MOD_GSK3_1": {
+            "pat": "...[ST]...[ST][^ST]"
+        },
+        "MOD_LATS_1": {
+            "pat": "H.[KR]..[ST][^P]"
+        },
+        "MOD_PIKK_1": {
+            "pat": "[ST]Q"
+        },
+        "MOD_N-GLC_1": {
+            "pat": ".N[^P][ST].."
+        },
+        "MOD_PKA_1": {
+            "pat": "[RK][RK].[ST][^P].."
+        },
+        "MOD_PKB_1": {
+            "pat": "R.R..[ST][^P].."
+        },
+        "MOD_Plk_1": {
+            "pat": "[DNE][^PG][ST]"
+        },
+        "MOD_PRK1": {
+            "pat": "[LIVM]....TG"
+        },
+        "MOD_ERK1": {
+            "pat": "P.[ST]P"
+        },
+        "MOD_SUMO_for_1": {
+            "pat": "[VILMAFP]K.E"
+        },
+        "TRG_NLS_MonoCore_2": {
+            "pat": "[^DE]K[RK][KRP][KR][^DE]"
+        },
+        "TRG_ER_KDEL_1": {
+            "pat": "[KRHQSAP][DENQT]EL$"
+        },
+        "TRG_Golgi_diPhe_1": {
+            "pat": "Q......FF"
+        },
+        "TRG_ER_FFAT_1": {
+            "pat": "E[FY][FYK]DA.[ESTD]"
+        },
+        "INT_RGG": {
+            "pat": "RGG"
+        },
+        "TRG_FG": {
+            "pat": "[FG].FG"
+        },
+        "INT_FRG": {
+            "pat": "[FR]G"
+        },
+        "INT_SGFYSG": {
+            "pat": "[SG][FY][SG]"
+        },
+        "PG_rich": {
+            "pat": "[G]..[GP][PG]"
+        },
+        "LARKS": {
+            "pat": "[SG]Y[SG][SG]Y[SG]"
+        },
+        "ELASTIN_LIKE": {
+            "pat": "VPG.G"
+        },
+        "INT_FGDF": {
+            "pat": "FGDF"
+        },
+        "R_plus_Y": {
+            "pat": "[RY]"
+        },
+        "AA_S": {
+            "pat": "S[^S]"
+        },
+        "AA_P": {
+            "pat": "P[^P]"
+        },
+        "AA_T": {
+            "pat": "T[^T]"
+        },
+        "AA_A": {
+            "pat": "A[^A]"
+        },
+        "AA_H": {
+            "pat": "H[^H]"
+        },
+        "AA_Q": {
+            "pat": "Q[^Q]"
+        },
+        "AA_N": {
+            "pat": "N[^N]"
+        },
+        "AA_G": {
+            "pat": "G[^G]"
+        },
+        "AA_R": {
+            "pat": "R[^R]"
+        },
+        "acidic": {
+            "pat": "[DE]"
+        },
+        "basic": {
+            "pat": "[RK]"
+        },
+        "aliphatic": {
+            "pat": "[ALMIV]"
+        },
+        "polar_fraction": {
+            "pat": "[QNSTGCH]"
+        },
+        "chain_expanding": {
+            "pat": "[EDRKP]"
+        },
+        "aromatic": {
+            "pat": "[FYW]"
+        },
+        "disorder_promoting": {
+            "pat": "[TAGRDHQKSEP]"
+        },
+        "net_charge": {
+            "score": {
+                "D": -1,
+                "E": -1,
+                "K": 1,
+                "R": 1
+            }
+        },
+        "KL_hydropathy": {
+            "score": {
+                "I": 4.5,
+                "V": 4.2,
+                "L": 3.8,
+                "F": 2.8,
+                "C": 2.5,
+                "M": 1.9,
+                "A": 1.8,
+                "G": -0.4,
+                "T": -0.7,
+                "S": -0.8,
+                "W": -0.9,
+                "Y": -1.3,
+                "P": -1.6,
+                "H": -3.2,
+                "E": -3.5,
+                "Q": -3.5,
+                "D": -3.5,
+                "N": -3.5,
+                "K": -3.9,
+                "R": -4.5
+            },
+            "average": true
+        }
+    },
+    "length": {
+        "D_repeats": {
+            "pat": "D{2,}"
+        },
+        "E_repeats": {
+            "pat": "E{2,}"
+        },
+        "FG_repeats": {
+            "pat": "[FG]{2,}"
+        },
+        "G_repeats": {
+            "pat": "G{2,}"
+        },
+        "K_repeats": {
+            "pat": "K{2,}"
+        },
+        "KAP_repeats": {
+            "pat": "[KAP]{2,}"
+        },
+        "N_repeats": {
+            "pat": "N{2,}"
+        },
+        "P_repeats": {
+            "pat": "P{2,}"
+        },
+        "PTS_repeats": {
+            "pat": "[PTS]{2,}"
+        },
+        "Q_repeats": {
+            "pat": "Q{2,}"
+        },
+        "QN_repeats": {
+            "pat": "[QN]{2,}"
+        },
+        "R_repeats": {
+            "pat": "R{2,}"
+        },
+        "RG_repeats": {
+            "pat": "[RG]{2,}"
+        },
+        "S_repeats": {
+            "pat": "S{2,}"
+        },
+        "SG_repeats": {
+            "pat": "[SG]{2,}"
+        },
+        "SR_repeats": {
+            "pat": "[SR]{2,}"
+        }
+    },
+    "log_ratio": {
+        "ED_ratio": {
+            "numerator": "E",
+            "denominator": "D"
+        },
+        "RK_ratio": {
+            "numerator": "R",
+            "denominator": "K"
+        }
+    }
+}

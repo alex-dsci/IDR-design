@@ -1,0 +1,36 @@
+{
+    "non_modular": [
+        "scd",
+        "isoelectric_point",
+        "complexity",
+        "fcr",
+        "custom_kappa",
+        "custom_omega"
+    ],
+    "count": {
+        "cold_regex_pattern": {
+            "patturn": "BR{,5}"
+        },
+        "A_minus_G": {
+            "score": {
+                "A": 1,
+                "G": -1
+            }
+        },
+        "percent_P_or_T": {
+            "pat": "[PT]",
+            "average": true
+        }
+    },
+    "length": {
+        "cold_regex_length": {
+            "pat": "BR{,5}" 
+        } 
+    },
+    "log_ratio": {
+        "ED_ratio": {
+            "numerator": "E",
+            "denominator": "D"
+        }
+    }
+}
